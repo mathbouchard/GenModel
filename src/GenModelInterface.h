@@ -1,4 +1,4 @@
-// GenModelDLL.h : main header file for the GenModelDLL DLL
+// GenModelInterface.h : main header file for the GenModelDLL DLL
 //
 
 #pragma once
