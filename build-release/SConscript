@@ -138,6 +138,7 @@ for file in filesToRemove:
     
 # Build the library
 env.SharedLibrary(target = "../lib/" + target, source = files)
+call(["mkoctfile", "src/GenModelOctave.cpp"])
 
 if (missingModules):
     print("***************************************************************************")
