@@ -1,4 +1,4 @@
-// GenModelDLL.cpp : Defines the initialization routines for the DLL.
+// GenModelInterface.cpp : Defines the initialization routines for the DLL.
 //
 
 #include "GenModelDLL.h"
