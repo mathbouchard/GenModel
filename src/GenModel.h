@@ -103,7 +103,8 @@ public:
 	virtual long CreateModel() = 0;
 	virtual long Solve() = 0;
 	virtual long SetSol() = 0;
-	virtual long ChangeBulkBounds(int count, int * ind, char * type, double * vals);
+    virtual long ChangeBulkBounds(int count, int * ind, char * type, double * vals);
+	virtual long WriteProblemToLpFile(string filename);
 	virtual long ChangeBulkObjectives(int count, int * ind, double * vals);
 	virtual long DeleteMipStarts();
 	virtual double GetMIPRelativeGap();

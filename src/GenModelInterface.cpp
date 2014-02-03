@@ -1,21 +1,21 @@
 // GenModelInterface.cpp : Defines the initialization routines for the DLL.
 //
 
-#include "GenModelDLL.h"
+#include "GenModelInterface.h"
 
-#ifdef CPLEX_SOLVER
+#ifdef CPLEX_MODULE
 	#include "GenModelCplex.h"
 #endif
 
-#ifdef GUROBI_SOLVER
+#ifdef GUROBI_MODULEZ
 	#include "GenModelGurobi.h"
 #endif
 
-#ifdef HG_SOLVER
+#ifdef HG_MODULEZ
 	#include "GenModelHG.h"
 #endif
 
-#ifdef GLPK_SOLVER
+#ifdef GLPK_MODULE
 	#include "GenModelGlpk.h"
 #endif
 
@@ -26,15 +26,19 @@ using namespace std;
 
 vector<GenModel*> gmmap;
 
-GENMODEL_EXTERN_C_BEGIN
-
-GenModelDLL_API long STDCALL _AddConst(char* cname, double rhs, char sense, long token)
+long WriteProblemToLpFile(char* filename, long token)
 {
+    return gmmap[token]->WriteProblemToLpFile(string(filename));
+}
+
+long AddConst(char* cname, double rhs, char sense, long token)
+{
+    //printf("AddConst : name=%s, rhs=%f, sense=%c, token=%ld\n", cname, rhs, sense, token);
 	string cnameAsString(cname);
 	return gmmap[token]->AddConst(cnameAsString, rhs, sense);
 }
 
-GenModelDLL_API bool STDCALL _AddConstBulk(char* cname, double* rhs, long length, char sense, long token)
+bool AddConstBulk(char* cname, double* rhs, long length, char sense, long token)
 {
 	string cnameAsString(cname);
 	for (int i = 0; i < length; i++)
@@ -44,13 +48,14 @@ GenModelDLL_API bool STDCALL _AddConstBulk(char* cname, double* rhs, long length
 	return true;
 }
 
-GenModelDLL_API long STDCALL _AddVar(char* nn, double o, double l, double u, char t, long token)
+long AddVar(char* nn, double o, double l, double u, char t, long token)
 {
+    //printf("AddVar : name=%s, obj=%f, lower=%f, upper=%f, type=%c, token=%ld\n", nn, o, l, u, t, token);
 	string nnAsString(nn);
 	return gmmap[token]->AddVar(nnAsString, o, l, u, t);
 }
 
-GenModelDLL_API bool STDCALL _AddVarBulk(char* nn, double* o, long length, double l, double u, char t, long token)
+bool AddVarBulk(char* nn, double* o, long length, double l, double u, char t, long token)
 {
 	string nnAsString(nn);
 	for (int i = 0; i < length; i++)
@@ -60,17 +65,23 @@ GenModelDLL_API bool STDCALL _AddVarBulk(char* nn, double* o, long length, doubl
 	return true;
 }
 
-GenModelDLL_API long STDCALL _AddNz(long row, long col, double val, long token)
+long SetQpCoef(long i, long j, double val, long token)
+{
+    return gmmap[token]->vars.SetQpCoef(i, j, val);
+}
+
+long AddNz(long row, long col, double val, long token)
 {
 	return gmmap[token]->AddNz(row, col, val);
 }
 
-GenModelDLL_API long STDCALL _AddNzToLast(long col, double val, long token)
+long AddNzToLast(long col, double val, long token)
 {
+    //printf("AddNzToLast : col=%d, val=%f, token=%ld\n", col, val, token);
 	return gmmap[token]->AddNzToLast(col, val);
 }
 
-GenModelDLL_API long STDCALL _AddNzBulk(long* rows, long* cols, double* values, long valuesLength, long rowCount, long colCount, long iterations, long token)
+long AddNzBulk(long* rows, long* cols, double* values, long valuesLength, long rowCount, long colCount, long iterations, long token)
 {
 	//printf ("AddNzBulk %ld,%ld,%ld,%ld\n",valuesLength, rowCount, colCount, iterations);
 
@@ -78,7 +89,7 @@ GenModelDLL_API long STDCALL _AddNzBulk(long* rows, long* cols, double* values, 
 	int colIndex = 0;
 	for(int iter = 1; iter <= iterations; iter++)
 	{
-		//printf ("Iter %ld\n",iter);	
+		//printf ("Iter %ld\n",iter);
 		for(int i = 0; i < valuesLength; i++)
 		{
 			//printf ("i ri ci %ld,%ld,%ld\n",i,rows[i] + rowIndex, cols[i] + colIndex);
@@ -86,42 +97,43 @@ GenModelDLL_API long STDCALL _AddNzBulk(long* rows, long* cols, double* values, 
 		}
 		rowIndex += rowCount;
 		colIndex += colCount;
-		//printf ("ri ci %ld,%ld\n", rowIndex, colIndex);	
+		//printf ("ri ci %ld,%ld\n", rowIndex, colIndex);
 	}
 	return true;
 }
 
-GenModelDLL_API long STDCALL _SetNumbers(long token)
+long SetNumbers(long token)
 {
 	return gmmap[token]->SetNumbers();
 }
 
-GenModelDLL_API long STDCALL _SetLongParam(char* param, long val, long token)
+long SetLongParam(char* param, long val, long token)
 {
 	string paramAsString(param);
 	return gmmap[token]->SetLongParam(paramAsString, val);
 }
 
-GenModelDLL_API long STDCALL _SetDblParam(char* param, double val, long token)
+long SetDblParam(char* param, double val, long token)
 {
 	string paramAsString(param);
 	return gmmap[token]->SetDblParam(paramAsString, val);
 }
 
-GenModelDLL_API long STDCALL _SetBoolParam(char* param, bool val, long token)
+long SetBoolParam(char* param, bool val, long token)
 {
+    //printf("SetBoolParam : param=%s, val=%d, token=%ld\n", param, val, token);
 	string paramAsString(param);
 	return gmmap[token]->SetBoolParam(paramAsString, val);
 }
 
-GenModelDLL_API long STDCALL _SetStrParam(char* param, char* val, long token)
+long SetStrParam(char* param, char* val, long token)
 {
 	string paramAsString(param);
 	string valueAsString(val);
 	return gmmap[token]->SetStrParam(paramAsString, valueAsString);
 }
 
-GenModelDLL_API long STDCALL _CreateNewModel(char model)
+long CreateNewModel(char model)
 {
 	long ret = gmmap.size();
 	if (model == 'C') // Cplex
@@ -144,10 +156,13 @@ GenModelDLL_API long STDCALL _CreateNewModel(char model)
 	{
 		throw new exception();
 	}
-	return ret;
+	
+    //printf("Creating model %c %d %d\n", model, model, int(gmmap.size()));
+    //CPLEX_CREATE
+    return ret;
 }
 
-GenModelDLL_API long STDCALL _CopyOrder(long token, int count, int* ind, int* weight)
+long CopyOrder(long token, int count, int* ind, int* weight)
 {
 #ifdef CPLEX_SOLVER
 	CplexData* d = static_cast<CplexData*>(gmmap[token]->solverdata);
@@ -158,13 +173,13 @@ GenModelDLL_API long STDCALL _CopyOrder(long token, int count, int* ind, int* we
 	return 0;
 }
 
-GenModelDLL_API long STDCALL _DeleteModel(long token)
+long DeleteModel(long token)
 {
 	delete gmmap[token];
 	return 0;
 }
 
-GenModelDLL_API long STDCALL _CreateModel(long token)
+long CreateModel(long token)
 {
 	gmmap[token]->SetNumbers();
 	gmmap[token]->Init("GenModel");
@@ -172,15 +187,20 @@ GenModelDLL_API long STDCALL _CreateModel(long token)
 	return 0;
 }
 
-GenModelDLL_API long STDCALL _SolveModel(long token)
+long SolveModel(long token)
 {
 	gmmap[token]->Solve();
 	gmmap[token]->SetSol();
+    /*for(int i = 0; i < gmmap[token]->nc; i++)
+	{
+		printf("%s: %f\n", gmmap[token]->vars.name[i].c_str(), gmmap[token]->vars.sol[i]);	// Solution des variables
+	}*/
 	return long(gmmap[token]->solstat);
 }
 
-GenModelDLL_API bool STDCALL _GetSolVars(double* values, long length, long token)
+bool GetSolVars(double* values, long length, long token)
 {
+    //printf("\tC++: Adress GetSolVars use is %p size = %d / %ld\n", values, length, gmmap[token]->nc);
 	if (length != gmmap[token]->nc)
 	{
 		return false;
@@ -188,20 +208,22 @@ GenModelDLL_API bool STDCALL _GetSolVars(double* values, long length, long token
 
 	for(int i = 0; i < gmmap[token]->nc; i++)
 	{
+        //printf("\tC++: %s -> %f\n", gmmap[token]->vars.name[i].c_str(), gmmap[token]->vars.sol[i]);
 		values[i] = gmmap[token]->vars.sol[i];	// Solution des variables
 	}
 
 	return true;
 }
 
-GenModelDLL_API bool __stdcall _HasSolution(long token)
+bool HasSolution(long token)
 {
 	//printf("before return %d\n", gmmap[token]->hassolution);
 	return gmmap[token]->hassolution;
 }
 
-GenModelDLL_API bool STDCALL _GetDualPrices(double* values, long length, long token)
+bool GetDualPrices(double* values, long length, long token)
 {
+    //printf("\tC++: Adress GetDualPrices use is %p size = %ld\n", values, length, gmmap[token]->nr);
 	if (length != gmmap[token]->nr)
 	{
 		return false;
@@ -209,13 +231,14 @@ GenModelDLL_API bool STDCALL _GetDualPrices(double* values, long length, long to
 
 	for(int i = 0; i < gmmap[token]->nr; i++)
 	{
+        //printf("\tC++: %s -> %f\n", gmmap[token]->consts[i].name.c_str(), gmmap[token]->consts[i].dual);
 		values[i] = gmmap[token]->consts[i].dual;	// Dual prices des contraintes
 	}
 
 	return true;
 }
 
-GenModelDLL_API bool STDCALL _GetReducedCosts(double* values, long length, long token)
+bool GetReducedCosts(double* values, long length, long token)
 {
 	if (length != gmmap[token]->nc)
 	{
@@ -230,7 +253,7 @@ GenModelDLL_API bool STDCALL _GetReducedCosts(double* values, long length, long 
 	return true;
 }
 
-GenModelDLL_API bool STDCALL _GetRowValues(double* values, long length, long rowIndex, long token)
+bool GetRowValues(double* values, long length, long rowIndex, long token)
 {
 	if (length != gmmap[token]->nc || rowIndex >= gmmap[token]->nr)
 	{
@@ -239,12 +262,12 @@ GenModelDLL_API bool STDCALL _GetRowValues(double* values, long length, long row
 
 	memset(values, 0, sizeof(double)*length);
 	for(int i = 0; i < int(gmmap[token]->consts[rowIndex].cols.size()); i++)
-		values[gmmap[token]->consts[rowIndex].cols[i]] = gmmap[token]->consts[rowIndex].coefs[i];	
+		values[gmmap[token]->consts[rowIndex].cols[i]] = gmmap[token]->consts[rowIndex].coefs[i];
 	
 	return true;
 }
 
-GenModelDLL_API bool STDCALL _GetObjCoef(double* values, long length, long token)
+bool GetObjCoef(double* values, long length, long token)
 {
 	if (length != gmmap[token]->nc)
 	{
@@ -253,13 +276,13 @@ GenModelDLL_API bool STDCALL _GetObjCoef(double* values, long length, long token
 
 	for(int i = 0; i < gmmap[token]->nc; i++)
 	{
-		values[i] = gmmap[token]->vars.obj[i];	
+		values[i] = gmmap[token]->vars.obj[i];
 	}
 
 	return true;
 }
 
-GenModelDLL_API bool STDCALL _GetBounds(double* lb, double* ub, long length, long token)
+bool GetBounds(double* lb, double* ub, long length, long token)
 {
 	if (length != gmmap[token]->nc)
 	{
@@ -275,51 +298,108 @@ GenModelDLL_API bool STDCALL _GetBounds(double* lb, double* ub, long length, lon
 	return true;
 }
 
-GenModelDLL_API double STDCALL _GetRHS(long row, long token)
+double GetRHS(long row, long token)
 {
 	return gmmap[token]->consts[row].lrhs;
 }
 
-GenModelDLL_API bool STDCALL _SetRHS(long row, double val, long token)
+bool SetRHS(long row, double val, long token)
 {
 	gmmap[token]->consts[row].lrhs = val;
 	return true;
 }
 
-GenModelDLL_API char STDCALL _GetSense(long row, long token)
+char GetSense(long row, long token)
 {
 	return gmmap[token]->consts[row].sense;
 }
 
-GenModelDLL_API bool STDCALL _SetSense(long row, char sense, long token)
+bool SetSense(long row, char sense, long token)
 {
 	gmmap[token]->consts[row].sense = sense;
 	return true;
 }
 
-GenModelDLL_API double STDCALL _GetObjVal(long token)
+double GetObjVal(long token)
 {
 	return gmmap[token]->objval;
 }
 
-GenModelDLL_API long STDCALL _ChangeBulkBounds(int count, int* indices, char* types, double* values, long token)
+long ChangeBulkBounds(int count, int* indices, char* types, double* values, long token)
 {
 	return gmmap[token]->ChangeBulkBounds(count, indices, types, values);
 }
 
-GenModelDLL_API long STDCALL _ChangeBulkObjectives(int count, int* indices, double* values, long token)
+long ChangeBulkObjectives(int count, int* indices, double* values, long token)
 {
 	return gmmap[token]->ChangeBulkObjectives(count, indices, values);
 }
 
-GenModelDLL_API long STDCALL _DeleteMipStarts(long token)
+long DeleteMipStarts(long token)
 {
 	return gmmap[token]->DeleteMipStarts();
 }
 
-GenModelDLL_API double STDCALL _GetMIPRelativeGap(long token)
+double GetMIPRelativeGap(long token)
 {
 	return gmmap[token]->GetMIPRelativeGap();
 }
 
-GENMODEL_EXTERN_C_END
+template<class T> InterfaceVector<T>::InterfaceVector()
+{
+    val = NULL;
+    size = 0;
+    //printf("\tC++: Adress at creation is %p size = %d\n", val, size);
+}
+
+template<class T> InterfaceVector<T>::InterfaceVector(int _size)
+{
+    size = _size;
+    val = new T[size];
+    //printf("\tC++: Adress at creation is %p size = %d\n", val, size);
+    //memset(val, 0, sizeof(T));
+}
+
+template<class T> InterfaceVector<T>::~InterfaceVector()
+{
+    Delete();
+}
+
+template<class T> void InterfaceVector<T>::SetSize(int _size)
+{
+    Delete();
+    size = _size;
+    val = new T[size];
+}
+template<class T> void InterfaceVector<T>::Delete()
+{
+    size = 0;
+    if(val != NULL)
+        delete[] val;
+}
+
+template<class T> void InterfaceVector<T>::Set(int index, T inval)
+{
+    if(index < 0 || index >= size)
+        printf("Index out of bound (%d not in 0..%d)\n", index, size);
+    else
+        val[index] = inval;
+}
+
+template<class T> T InterfaceVector<T>::Get(int index)
+{
+    if(index < 0 || index >= size)
+        printf("Index out of bound (%d not in 0..%d)\n", index, size);
+    else
+        return val[index];
+    return 0.0;
+}
+
+template<class T> T* InterfaceVector<T>::Ptr()
+{
+    return val;
+}
+
+template class InterfaceVector<int>;
+template class InterfaceVector<long>;
+template class InterfaceVector<double>;

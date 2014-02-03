@@ -193,6 +193,12 @@ long GenModel::ChangeBulkObjectives(int count, int * ind, double * vals)
 	return 0;
 }
 
+long GenModel::WriteProblemToLpFile(string filename)
+{
+    printf("Not implemented\n");
+	return 0;
+}
+
 long GenModel::DeleteMipStarts()
 {
 	return 0;

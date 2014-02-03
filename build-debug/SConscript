@@ -1,6 +1,7 @@
 from platform import system
 from os import listdir
 from collections import OrderedDict
+from subprocess import call
 
 import os
 
@@ -13,30 +14,41 @@ else:
     print("RELEASE")
 print("System is "+ system());
 
-def validateLibrary(libraryName):
+def validateLibrary(libraryName, exclude):
     """ Search in the libpath of the current platform if the library is present """
+    if module in exclude:
+        print(module+"-"+mod+" excluded")
+        return False;
     for folder in libpath[system()]:
         for file in listdir(folder):
             if (libraryName + "." in file):
                 return True
-    return False
+    return True# False
 
 cpppath = {
-    "Linux": [r”/opt/ibm/ILOG/CPLEX_Studio126/cplex/include", 
-              os.environ[‘HOME’]+"/source/gurobi510/linux64/include",
+    "Linux": [r"/opt/ibm/ILOG/CPLEX_Studio126/cplex/include",
+              os.environ['HOME']+"/source/gurobi510/linux64/include",
 	      r"/usr/local/include/"],
     "Windows": [],
-    "Darwin": [os.environ[‘HOME’]+"/Applications/IBM/ILOG/CPLEX_Studio126/cplex/include",
-              r"/Library/gurobi560/mac64/include"]
+    "Darwin": [os.environ['HOME']+"/Applications/IBM/ILOG/CPLEX_Studio126/cplex/include",
+              r"/Library/gurobi560/mac64/include",
+              r"/usr/local/Cellar/octave/3.8.0/include/octave-3.8.0",
+              r"/Users/mbouchard/.rvm/rubies/ruby-1.9.3-p392/include/ruby-1.9.1",
+              r"/Users/mbouchard/.rvm/rubies/ruby-1.9.3-p392/include/ruby-1.9.1/x86_64-darwin13.0.2",
+              r"/System/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7",
+	      r"/Users/mbouchard/source/scipoptsuite-3.0.2/scip-3.0.2/src/"]
     }
         
 libpath = {
-    "Linux": [r"/opt/ibm/ILOG/CPLEX_Studio126/cplex/bin/x86-64_sles10_4.1/",
-              os.environ[‘HOME’]+"/source/gurobi510/linux64/lib",
+        "Linux": [r"/opt/ibm/ILOG/CPLEX_Studio126/cplex/bin/x86-64_sles10_4.1/",
+              os.environ['HOME']+"/source/gurobi510/linux64/lib",
               r"/usr/local/lib/"],
     "Windows": [],
-    "Darwin": [os.environ[‘HOME’]+"/Applications/IBM/ILOG/CPLEX_Studio126/cplex/bin/x86-64-osx",
-              r"/Library/gurobi560/mac64/lib"]
+    "Darwin": [os.environ['HOME']+"/Applications/IBM/ILOG/CPLEX_Studio126/cplex/lib/x86-64_osx/static_pic",
+              r"/Library/gurobi560/mac64/lib",
+              r"/Users/mbouchard/.rvm/rubies/ruby-1.9.3-p392/lib",
+              r"/System/Library/Frameworks/Python.framework/Versions/2.7/lib/",
+	      r"/Users/mbouchard/source/scipoptsuite-3.0.2/scip-3.0.2/lib/"]
     }
 
 cppdefines = []
@@ -50,39 +62,46 @@ elif (system() == "Darwin"):
 libs = []
 
 # Validate that the libs are present
-moduleLibs = = {
+moduleLibs = {
     "Cplex": {
-        "Linux": ["cplex125"],
-        "Windows": ["cplex125"],
-        “Darwin”: ["cplex125"]
+        "Linux": ["cplex126", "ruby","python"],
+        "Windows": ["cplex126", "ruby","python"],
+        "Darwin": ["cplex", "ruby","python"]
         },
     "Gurobi": {
         "Linux": ["gurobi_c++", "gurobi51"],
         "Windows": ["gurobi_c++md2012", "gurobi56"],
-	“Darwin”: ["gurobi_c++", "gurobi56"]
+        "Darwin": ["gurobi_c++", "gurobi56"]
         },
-    "HG": {
-        "Linux": ["cplex126”],
+    "HyperGraph": {
+        "Linux": ["cplex126"],
         "Windows": ["cplex126"],
-        “Darwin”: ["cplex126"]
+        "Darwin": ["cplex"]
         },
     "Glpk": {
         "Linux": ["glpk"],
         "Windows": ["glpk_4_52"],
-        “Darwin”: ["glpk"]
+        "Darwin": ["glpk"]
+        },
+    "Scip": {
+        "Linux": ["scip"],
+        "Windows": ["scip"],
+        "Darwin": ["scip"]
         }
     }
 
 
 missingModules = []
+excludedModules = ["Glpk","Scip","Gurobi","HyperGraph"]
 
 for module in moduleLibs:
     allModulePresents = True
+
     for mod in moduleLibs[module][system()]:
-        if (not validateLibrary(mod)):
-            allLibPresents = False
+        if (not validateLibrary(mod,excludedModules)):
+            allModulePresents = False
     if (allModulePresents):
-        libs += moduleLibs[module][system()];
+        libs += moduleLibs[module][system()]
         cppdefines.append((module + "_MODULE").upper())
     else:
         missingModules.append(module)
@@ -115,14 +134,16 @@ env = Environment(TARGET_ARCH = "x86_64",
 # Change the build folder output
 #env.VariantDir("build-release", "src", duplicate = 0)
 
-files = Glob("*.cpp")
+cppfiles = Glob("*.cpp")
+cfiles = Glob("*.c")
+files = cppfiles+cfiles
 if (system() == "Windows"):
-    files += [“GenModelInterface.def"]
-    target = “genmodel+suffix
+    files += ["GenModelInterface.def"]
+    target = "genmodel"+suffix
 elif (system() == "Linux"):
-    target = “genmodel"+suffix
+    target = "genmodel"+suffix
 elif (system() == "Darwin"):
-    target = “genmodel"+suffix
+    target = "genmodel"+suffix
 
 # Remove the cpp files for the missing solvers
 filesToRemove = []
@@ -134,6 +155,11 @@ if (not env.GetOption("clean")):
 
 for file in filesToRemove:
     print(file)
+    files.remove(file)
+    
+matches = [file for file in files if "GenModelOctave.cpp" in str(file)]
+for file in matches:
+    print("Removing "+str(file))
     files.remove(file)
     
 # Build the library

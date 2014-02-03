@@ -11,6 +11,13 @@ GenModelCplex::GenModelCplex() {
     
 }
 
+long GenModelCplex::WriteProblemToLpFile(string filename)
+{
+    CplexData* d = static_cast<CplexData*>(solverdata);
+    CPXwriteprob(d->env, d->lp, filename.c_str(), "LP");
+    return 0;
+}
+
 long GenModelCplex::Solve()
 {
 	CplexData* d = static_cast<CplexData*>(solverdata);
@@ -283,54 +290,65 @@ long GenModelCplex::CreateModel()
 
 	if(!vars.qi.empty())
 	{
+        boolParam["qp"] = true;
 		qpbeg = new int[nc];
 		qpnum = new int[nc];
 	}
-	for(iti = vars.qi.begin(); iti != vars.qi.end(); iti++, itj++, itv++)
-	{
-		boolParam["qp"] = true;
-		//status = CPXchgqpcoef (d->env, d->lp, *iti, *itj, *itv);
-
-		qptemp[*iti].push_back(pair<int, double>(*itj,*itv));
-		qpnz++;
-		if(*iti != *itj)
-		{
-			qptemp[*itj].push_back(pair<int, double>(*iti,*itv));
-			qpnz++;
-		}
-	}
-	if(!vars.qi.empty())
-	{
-		qpv = new double[qpnz];
-		qpind = new int[qpnz];
-
-		qpnz=0;
-		for(int i = 0; i < int(nc); i++)
-		{
-			qpbeg[i] = qpnz;
-			qpnum[i] = int(qptemp[i].size());
-			for(int j = 0; j < int(qptemp[i].size()); j++)
-			{
-				qpind[qpnz] = qptemp[i][j].first;
-				qpv[qpnz] = qptemp[i][j].second;
-				qpnz++;
-			}
-		}
-		status = CPXcopyquad(d->env, d->lp, qpbeg, qpnum, qpind, qpv);
-		delete[] qpbeg;
-		delete[] qpnum;
-		delete[] qpind;
-		delete[] qpv;
-	}
-	if ( status )
-	{
-		printf("QP problem!\n");
-		return 1;
+    if(boolParam["qp_mat"])
+    {
+        for(iti = vars.qi.begin(); iti != vars.qi.end(); iti++, itj++, itv++)
+        {
+            qptemp[*iti].push_back(pair<int, double>(*itj,*itv));
+            qpnz++;
+            if(*iti != *itj)
+            {
+                qptemp[*itj].push_back(pair<int, double>(*iti,*itv));
+                qpnz++;
+            }
+        }
+        if(!vars.qi.empty())
+        {
+            qpv = new double[qpnz];
+            qpind = new int[qpnz];
+            
+            qpnz=0;
+            for(int i = 0; i < int(nc); i++)
+            {
+                qpbeg[i] = qpnz;
+                qpnum[i] = int(qptemp[i].size());
+                for(int j = 0; j < int(qptemp[i].size()); j++)
+                {
+                    qpind[qpnz] = qptemp[i][j].first;
+                    qpv[qpnz] = qptemp[i][j].second;
+                    qpnz++;
+                }
+            }
+            status = CPXcopyquad(d->env, d->lp, qpbeg, qpnum, qpind, qpv);
+            delete[] qpbeg;
+            delete[] qpnum;
+            delete[] qpind;
+            delete[] qpv;
+        }
+        if ( status )
+        {
+            printf("QP problem!\n");
+            return 1;
+        }
 	}
 	//else
 		//printf("Coefs added!\n");
 
 	return 0;
+}
+
+long AddQuadraticVector(vector<int>& ind, vector<double>& val)
+{
+    return 0;
+}
+
+long AddQuadraticMatrix(vector<int>& indi, vector<int>& indj, vector<double>& val)
+{
+    return 0;
 }
 
 long GenModelCplex::CreateModel(string filename, int type, string dn)

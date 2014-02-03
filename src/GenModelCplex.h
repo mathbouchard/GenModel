@@ -68,6 +68,7 @@ public:
 	long ChangeBulkBounds(int count, int * ind, char * type, double * vals);
 	long ChangeBulkObjectives(int count, int * ind, double * vals);
     long ChangeBulkNz(int count, int* rind, int* cind, double* vals);
+    long WriteProblemToLpFile(string filename);
     long SwitchToMip();
     long SwitchToLp();
 	long DeleteMipStarts();
