@@ -3,6 +3,47 @@
 #include <math.h>
 #include <time.h>
 
+double GenModel::FindConstraintMaxLhs(long row)
+{
+    double total = 0.0;
+    for(int i = 0; i < consts[row].nz; i++)
+        total += (consts[row].coefs[i] >= 0 ? vars.ub[consts[row].cols[i]] : vars.lb[consts[row].cols[i]])*consts[row].coefs[i];
+    return total;
+}
+
+double GenModel::FindConstraintMinLhs(long row)
+{
+    double total = 0.0;
+    for(int i = 0; i < consts[row].nz; i++)
+        total += (consts[row].coefs[i] >= 0 ? vars.lb[consts[row].cols[i]] : vars.ub[consts[row].cols[i]])*consts[row].coefs[i];
+    return total;
+}
+
+long GenModel::MakeConstraintFeasible(long row)
+{
+    if(consts[row].sense == 'L')
+    {
+        double min = FindConstraintMinLhs(row);
+        if(min > consts[row].lrhs)
+            consts[row].lrhs = min;
+    }
+    else if(consts[row].sense == 'G')
+    {
+        double max = FindConstraintMaxLhs(row);
+        if(max < consts[row].lrhs)
+            consts[row].lrhs = max;
+    }
+    else if(consts[row].sense == 'R')
+    {
+        double min = FindConstraintMinLhs(row);
+        double max = FindConstraintMaxLhs(row);
+        if(max < consts[row].lrhs)
+            consts[row].lrhs = max;
+        else if(min > consts[row].urhs)
+            consts[row].urhs = min;
+    }
+    return 0;
+}
 
 long GenModel::SetLongParam(string param, long val)
 {
@@ -195,18 +236,26 @@ long GenModel::ChangeBulkObjectives(int count, int * ind, double * vals)
 
 long GenModel::WriteProblemToLpFile(string filename)
 {
-    printf("Not implemented\n");
+    throw "Not implemented";
+	return 0;
+}
+
+long GenModel::WriteSolutionToFile(string filename)
+{
+    throw "Not implemented";
 	return 0;
 }
 
 long GenModel::DeleteMipStarts()
 {
+    throw "Not implemented";
 	return 0;
 }
 
 double GenModel::GetMIPRelativeGap()
 {
-	throw new exception();
+	throw "Not implemented";
+    return 0.0;
 }
 
 long ModVars::AddVar(string nn, double o, double l, double u, char t)
@@ -256,6 +305,8 @@ long ModVars::Print()
 
 GenModel::GenModel()
 {
+    bcreated = false;
+    binit = false;
 	nc=0;
 	nr=0;
 	solverdata = NULL;

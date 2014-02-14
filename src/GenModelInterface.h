@@ -18,29 +18,52 @@
 #endif
 
 #ifdef CPLEX_MODULE
-	#define CPLEX_CREATE gmmap.push_back(new GenModelCplex());
+	#define CPLEX_CREATE gmmap.push_back(new GenModelCplex())
+    #define CPLEX_EXIST true
 #else
-	#define CPLEX_CREATE throw new exception();
+	#define CPLEX_CREATE throw string("Cplex solver not available")
+    #define CPLEX_EXIST false
 #endif
 
-#ifdef GUROBI_MODULEZ
-	#define GUROBI_CREATE gmmap.push_back(new GenModelGurobi());
+#ifdef GUROBI_MODULE
+	#define GUROBI_CREATE gmmap.push_back(new GenModelGurobi())
+    #define GUROBI_EXIST true
 #else
-	#define GUROBI_CREATE throw new exception();
+	#define GUROBI_CREATE throw string("Gurobi solver not available")
+    #define GUROBI_EXIST false
 #endif
 
-#ifdef HG_MODULEZ
-	#define HG_CREATE gmmap.push_back(new GenModelHG());
+#ifdef HG_MODULE
+	#define HG_CREATE gmmap.push_back(new GenModelHG())
+    #define HG_EXIST true
 #else
-	#define HG_CREATE throw new exception();
+	#define HG_CREATE throw string("Hypergraph solver not available")
+    #define HG_EXIST false
 #endif
 
-#ifdef GLPK_MODULEZ
-	#define GLPK_CREATE gmmap.push_back(new GenModelGlpk());
+#ifdef GLPK_MODULE
+	#define GLPK_CREATE gmmap.push_back(new GenModelGlpk())
+    #define GLPK_EXIST true
 #else
-	#define GLPK_CREATE throw new exception();
+	#define GLPK_CREATE throw string("Glpk solver not available")
+    #define GLPK_EXIST false
 #endif
 
+#ifdef SCIP_MODULE
+    #define SCIP_CREATE gmmap.push_back(new GenModelGlpk())
+    #define SCIP_EXIST true
+#else
+    #define SCIP_CREATE throw string("Scip solver not available")
+    #define SCIP_EXIST false
+#endif
+
+#ifdef COIN_MODULE
+    #define COIN_CREATE gmmap.push_back(new GenModelCoin())
+    #define COIN_EXIST true
+#else
+    #define COIN_CREATE throw string("Scip solver not available")
+    #define COIN_EXIST false
+#endif
 
 template<class T> class InterfaceVector {
 public:

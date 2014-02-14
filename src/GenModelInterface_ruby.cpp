@@ -1800,6 +1800,9 @@ int SWIG_Ruby_arity( VALUE proc, int minimal )
 
 
 
+  #define SWIG_exception(code, msg) do { SWIG_Error(code, msg);; } while(0) 
+
+
 /* -------- TYPES TABLE (BEGIN) -------- */
 
 #define SWIGTYPE_p_InterfaceVectorT_double_t swig_types[0]
@@ -1838,8 +1841,11 @@ static VALUE mGenmodel;
 
 /* Put header files here or function declarations like below */
     #include "GenModelInterface.h"
-    
+    double FindConstraintMaxLhs(long row, long token);
+    double FindConstraintMinLhs(long row, long token);
+    long MakeConstraintFeasible(long row, long token);
     long WriteProblemToLpFile(char* filename, long token);
+    long WriteSolutionToFile(char* filename, long token);
     long AddConst(char* cname, double rhs, char sense, long token);
     bool AddConstBulk(char* cname, double* rhs, long length, char sense, long token);
     long AddVar(char* nn, double o, double l, double u, char t, long token);
@@ -1853,7 +1859,8 @@ static VALUE mGenmodel;
     long SetDblParam(char* param, double val, long token);
     long SetBoolParam(char* param, bool val, long token);
     long SetStrParam(char* param, char* val, long token);
-    long CreateNewModel(char model);
+    long CreateNewModel(char type, char* name = NULL);
+    bool IsSolverAvailable(char type);
     long CopyOrder(long token, int count, int* ind, int* weight);
     long DeleteModel(long token);
     long CreateModel(long token);
@@ -1865,6 +1872,10 @@ static VALUE mGenmodel;
     bool GetRowValues(double* values, long length, long rowIndex, long token);
     bool GetObjCoef(double* values, long length, long token);
     bool GetBounds(double* lb, double* ub, long length, long token);
+    double GetLowerBound(long col, long token);
+    double GetUpperBound(long col, long token);
+    bool SetLowerBound(long col, double val, long token);
+    bool SetUpperBound(long col, double val, long token);
     double GetRHS(long row, long token);
     bool SetRHS(long row, double val, long token);
     char GetSense(long row, long token);
@@ -2132,8 +2143,18 @@ _wrap_new_IntVector__SWIG_0(int argc, VALUE *argv, VALUE self) {
   if ((argc < 0) || (argc > 0)) {
     rb_raise(rb_eArgError, "wrong # of arguments(%d for 0)",argc); SWIG_fail;
   }
-  result = (InterfaceVector< int > *)new InterfaceVector< int >();
-  DATA_PTR(self) = result;
+  {
+    try {
+      result = (InterfaceVector< int > *)new InterfaceVector< int >();
+      DATA_PTR(self) = result; 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   return self;
 fail:
   return Qnil;
@@ -2172,8 +2193,18 @@ _wrap_new_IntVector__SWIG_1(int argc, VALUE *argv, VALUE self) {
     SWIG_exception_fail(SWIG_ArgError(ecode1), Ruby_Format_TypeError( "", "int","InterfaceVector<(int)>", 1, argv[0] ));
   } 
   arg1 = static_cast< int >(val1);
-  result = (InterfaceVector< int > *)new InterfaceVector< int >(arg1);
-  DATA_PTR(self) = result;
+  {
+    try {
+      result = (InterfaceVector< int > *)new InterfaceVector< int >(arg1);
+      DATA_PTR(self) = result; 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   return self;
 fail:
   return Qnil;
@@ -2240,7 +2271,17 @@ _wrap_IntVector_SetSize(int argc, VALUE *argv, VALUE self) {
     SWIG_exception_fail(SWIG_ArgError(ecode2), Ruby_Format_TypeError( "", "int","SetSize", 2, argv[0] ));
   } 
   arg2 = static_cast< int >(val2);
-  (arg1)->SetSize(arg2);
+  {
+    try {
+      (arg1)->SetSize(arg2); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   return Qnil;
 fail:
   return Qnil;
@@ -2261,7 +2302,17 @@ _wrap_IntVector_Delete(int argc, VALUE *argv, VALUE self) {
     SWIG_exception_fail(SWIG_ArgError(res1), Ruby_Format_TypeError( "", "InterfaceVector< int > *","Delete", 1, self )); 
   }
   arg1 = reinterpret_cast< InterfaceVector< int > * >(argp1);
-  (arg1)->Delete();
+  {
+    try {
+      (arg1)->Delete(); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   return Qnil;
 fail:
   return Qnil;
@@ -2298,7 +2349,17 @@ _wrap_IntVector_Set(int argc, VALUE *argv, VALUE self) {
     SWIG_exception_fail(SWIG_ArgError(ecode3), Ruby_Format_TypeError( "", "int","Set", 3, argv[1] ));
   } 
   arg3 = static_cast< int >(val3);
-  (arg1)->Set(arg2,arg3);
+  {
+    try {
+      (arg1)->Set(arg2,arg3); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   return Qnil;
 fail:
   return Qnil;
@@ -2329,7 +2390,17 @@ _wrap_IntVector_Get(int argc, VALUE *argv, VALUE self) {
     SWIG_exception_fail(SWIG_ArgError(ecode2), Ruby_Format_TypeError( "", "int","Get", 2, argv[0] ));
   } 
   arg2 = static_cast< int >(val2);
-  result = (int)(arg1)->Get(arg2);
+  {
+    try {
+      result = (int)(arg1)->Get(arg2); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   vresult = SWIG_From_int(static_cast< int >(result));
   return vresult;
 fail:
@@ -2353,7 +2424,17 @@ _wrap_IntVector_Ptr(int argc, VALUE *argv, VALUE self) {
     SWIG_exception_fail(SWIG_ArgError(res1), Ruby_Format_TypeError( "", "InterfaceVector< int > *","Ptr", 1, self )); 
   }
   arg1 = reinterpret_cast< InterfaceVector< int > * >(argp1);
-  result = (int *)(arg1)->Ptr();
+  {
+    try {
+      result = (int *)(arg1)->Ptr(); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   vresult = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_int, 0 |  0 );
   return vresult;
 fail:
@@ -2370,8 +2451,18 @@ _wrap_new_LongVector__SWIG_0(int argc, VALUE *argv, VALUE self) {
   if ((argc < 0) || (argc > 0)) {
     rb_raise(rb_eArgError, "wrong # of arguments(%d for 0)",argc); SWIG_fail;
   }
-  result = (InterfaceVector< long > *)new InterfaceVector< long >();
-  DATA_PTR(self) = result;
+  {
+    try {
+      result = (InterfaceVector< long > *)new InterfaceVector< long >();
+      DATA_PTR(self) = result; 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   return self;
 fail:
   return Qnil;
@@ -2410,8 +2501,18 @@ _wrap_new_LongVector__SWIG_1(int argc, VALUE *argv, VALUE self) {
     SWIG_exception_fail(SWIG_ArgError(ecode1), Ruby_Format_TypeError( "", "int","InterfaceVector<(long)>", 1, argv[0] ));
   } 
   arg1 = static_cast< int >(val1);
-  result = (InterfaceVector< long > *)new InterfaceVector< long >(arg1);
-  DATA_PTR(self) = result;
+  {
+    try {
+      result = (InterfaceVector< long > *)new InterfaceVector< long >(arg1);
+      DATA_PTR(self) = result; 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   return self;
 fail:
   return Qnil;
@@ -2478,7 +2579,17 @@ _wrap_LongVector_SetSize(int argc, VALUE *argv, VALUE self) {
     SWIG_exception_fail(SWIG_ArgError(ecode2), Ruby_Format_TypeError( "", "int","SetSize", 2, argv[0] ));
   } 
   arg2 = static_cast< int >(val2);
-  (arg1)->SetSize(arg2);
+  {
+    try {
+      (arg1)->SetSize(arg2); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   return Qnil;
 fail:
   return Qnil;
@@ -2499,7 +2610,17 @@ _wrap_LongVector_Delete(int argc, VALUE *argv, VALUE self) {
     SWIG_exception_fail(SWIG_ArgError(res1), Ruby_Format_TypeError( "", "InterfaceVector< long > *","Delete", 1, self )); 
   }
   arg1 = reinterpret_cast< InterfaceVector< long > * >(argp1);
-  (arg1)->Delete();
+  {
+    try {
+      (arg1)->Delete(); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   return Qnil;
 fail:
   return Qnil;
@@ -2536,7 +2657,17 @@ _wrap_LongVector_Set(int argc, VALUE *argv, VALUE self) {
     SWIG_exception_fail(SWIG_ArgError(ecode3), Ruby_Format_TypeError( "", "long","Set", 3, argv[1] ));
   } 
   arg3 = static_cast< long >(val3);
-  (arg1)->Set(arg2,arg3);
+  {
+    try {
+      (arg1)->Set(arg2,arg3); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   return Qnil;
 fail:
   return Qnil;
@@ -2567,7 +2698,17 @@ _wrap_LongVector_Get(int argc, VALUE *argv, VALUE self) {
     SWIG_exception_fail(SWIG_ArgError(ecode2), Ruby_Format_TypeError( "", "int","Get", 2, argv[0] ));
   } 
   arg2 = static_cast< int >(val2);
-  result = (long)(arg1)->Get(arg2);
+  {
+    try {
+      result = (long)(arg1)->Get(arg2); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   vresult = SWIG_From_long(static_cast< long >(result));
   return vresult;
 fail:
@@ -2591,7 +2732,17 @@ _wrap_LongVector_Ptr(int argc, VALUE *argv, VALUE self) {
     SWIG_exception_fail(SWIG_ArgError(res1), Ruby_Format_TypeError( "", "InterfaceVector< long > *","Ptr", 1, self )); 
   }
   arg1 = reinterpret_cast< InterfaceVector< long > * >(argp1);
-  result = (long *)(arg1)->Ptr();
+  {
+    try {
+      result = (long *)(arg1)->Ptr(); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   vresult = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_long, 0 |  0 );
   return vresult;
 fail:
@@ -2608,8 +2759,18 @@ _wrap_new_DoubleVector__SWIG_0(int argc, VALUE *argv, VALUE self) {
   if ((argc < 0) || (argc > 0)) {
     rb_raise(rb_eArgError, "wrong # of arguments(%d for 0)",argc); SWIG_fail;
   }
-  result = (InterfaceVector< double > *)new InterfaceVector< double >();
-  DATA_PTR(self) = result;
+  {
+    try {
+      result = (InterfaceVector< double > *)new InterfaceVector< double >();
+      DATA_PTR(self) = result; 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   return self;
 fail:
   return Qnil;
@@ -2648,8 +2809,18 @@ _wrap_new_DoubleVector__SWIG_1(int argc, VALUE *argv, VALUE self) {
     SWIG_exception_fail(SWIG_ArgError(ecode1), Ruby_Format_TypeError( "", "int","InterfaceVector<(double)>", 1, argv[0] ));
   } 
   arg1 = static_cast< int >(val1);
-  result = (InterfaceVector< double > *)new InterfaceVector< double >(arg1);
-  DATA_PTR(self) = result;
+  {
+    try {
+      result = (InterfaceVector< double > *)new InterfaceVector< double >(arg1);
+      DATA_PTR(self) = result; 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   return self;
 fail:
   return Qnil;
@@ -2716,7 +2887,17 @@ _wrap_DoubleVector_SetSize(int argc, VALUE *argv, VALUE self) {
     SWIG_exception_fail(SWIG_ArgError(ecode2), Ruby_Format_TypeError( "", "int","SetSize", 2, argv[0] ));
   } 
   arg2 = static_cast< int >(val2);
-  (arg1)->SetSize(arg2);
+  {
+    try {
+      (arg1)->SetSize(arg2); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   return Qnil;
 fail:
   return Qnil;
@@ -2737,7 +2918,17 @@ _wrap_DoubleVector_Delete(int argc, VALUE *argv, VALUE self) {
     SWIG_exception_fail(SWIG_ArgError(res1), Ruby_Format_TypeError( "", "InterfaceVector< double > *","Delete", 1, self )); 
   }
   arg1 = reinterpret_cast< InterfaceVector< double > * >(argp1);
-  (arg1)->Delete();
+  {
+    try {
+      (arg1)->Delete(); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   return Qnil;
 fail:
   return Qnil;
@@ -2774,7 +2965,17 @@ _wrap_DoubleVector_Set(int argc, VALUE *argv, VALUE self) {
     SWIG_exception_fail(SWIG_ArgError(ecode3), Ruby_Format_TypeError( "", "double","Set", 3, argv[1] ));
   } 
   arg3 = static_cast< double >(val3);
-  (arg1)->Set(arg2,arg3);
+  {
+    try {
+      (arg1)->Set(arg2,arg3); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   return Qnil;
 fail:
   return Qnil;
@@ -2805,7 +3006,17 @@ _wrap_DoubleVector_Get(int argc, VALUE *argv, VALUE self) {
     SWIG_exception_fail(SWIG_ArgError(ecode2), Ruby_Format_TypeError( "", "int","Get", 2, argv[0] ));
   } 
   arg2 = static_cast< int >(val2);
-  result = (double)(arg1)->Get(arg2);
+  {
+    try {
+      result = (double)(arg1)->Get(arg2); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   vresult = SWIG_From_double(static_cast< double >(result));
   return vresult;
 fail:
@@ -2829,8 +3040,144 @@ _wrap_DoubleVector_Ptr(int argc, VALUE *argv, VALUE self) {
     SWIG_exception_fail(SWIG_ArgError(res1), Ruby_Format_TypeError( "", "InterfaceVector< double > *","Ptr", 1, self )); 
   }
   arg1 = reinterpret_cast< InterfaceVector< double > * >(argp1);
-  result = (double *)(arg1)->Ptr();
+  {
+    try {
+      result = (double *)(arg1)->Ptr(); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   vresult = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_double, 0 |  0 );
+  return vresult;
+fail:
+  return Qnil;
+}
+
+
+SWIGINTERN VALUE
+_wrap_FindConstraintMaxLhs(int argc, VALUE *argv, VALUE self) {
+  long arg1 ;
+  long arg2 ;
+  long val1 ;
+  int ecode1 = 0 ;
+  long val2 ;
+  int ecode2 = 0 ;
+  double result;
+  VALUE vresult = Qnil;
+  
+  if ((argc < 2) || (argc > 2)) {
+    rb_raise(rb_eArgError, "wrong # of arguments(%d for 2)",argc); SWIG_fail;
+  }
+  ecode1 = SWIG_AsVal_long(argv[0], &val1);
+  if (!SWIG_IsOK(ecode1)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode1), Ruby_Format_TypeError( "", "long","FindConstraintMaxLhs", 1, argv[0] ));
+  } 
+  arg1 = static_cast< long >(val1);
+  ecode2 = SWIG_AsVal_long(argv[1], &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), Ruby_Format_TypeError( "", "long","FindConstraintMaxLhs", 2, argv[1] ));
+  } 
+  arg2 = static_cast< long >(val2);
+  {
+    try {
+      result = (double)FindConstraintMaxLhs(arg1,arg2); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
+  vresult = SWIG_From_double(static_cast< double >(result));
+  return vresult;
+fail:
+  return Qnil;
+}
+
+
+SWIGINTERN VALUE
+_wrap_FindConstraintMinLhs(int argc, VALUE *argv, VALUE self) {
+  long arg1 ;
+  long arg2 ;
+  long val1 ;
+  int ecode1 = 0 ;
+  long val2 ;
+  int ecode2 = 0 ;
+  double result;
+  VALUE vresult = Qnil;
+  
+  if ((argc < 2) || (argc > 2)) {
+    rb_raise(rb_eArgError, "wrong # of arguments(%d for 2)",argc); SWIG_fail;
+  }
+  ecode1 = SWIG_AsVal_long(argv[0], &val1);
+  if (!SWIG_IsOK(ecode1)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode1), Ruby_Format_TypeError( "", "long","FindConstraintMinLhs", 1, argv[0] ));
+  } 
+  arg1 = static_cast< long >(val1);
+  ecode2 = SWIG_AsVal_long(argv[1], &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), Ruby_Format_TypeError( "", "long","FindConstraintMinLhs", 2, argv[1] ));
+  } 
+  arg2 = static_cast< long >(val2);
+  {
+    try {
+      result = (double)FindConstraintMinLhs(arg1,arg2); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
+  vresult = SWIG_From_double(static_cast< double >(result));
+  return vresult;
+fail:
+  return Qnil;
+}
+
+
+SWIGINTERN VALUE
+_wrap_MakeConstraintFeasible(int argc, VALUE *argv, VALUE self) {
+  long arg1 ;
+  long arg2 ;
+  long val1 ;
+  int ecode1 = 0 ;
+  long val2 ;
+  int ecode2 = 0 ;
+  long result;
+  VALUE vresult = Qnil;
+  
+  if ((argc < 2) || (argc > 2)) {
+    rb_raise(rb_eArgError, "wrong # of arguments(%d for 2)",argc); SWIG_fail;
+  }
+  ecode1 = SWIG_AsVal_long(argv[0], &val1);
+  if (!SWIG_IsOK(ecode1)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode1), Ruby_Format_TypeError( "", "long","MakeConstraintFeasible", 1, argv[0] ));
+  } 
+  arg1 = static_cast< long >(val1);
+  ecode2 = SWIG_AsVal_long(argv[1], &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), Ruby_Format_TypeError( "", "long","MakeConstraintFeasible", 2, argv[1] ));
+  } 
+  arg2 = static_cast< long >(val2);
+  {
+    try {
+      result = (long)MakeConstraintFeasible(arg1,arg2); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
+  vresult = SWIG_From_long(static_cast< long >(result));
   return vresult;
 fail:
   return Qnil;
@@ -2862,7 +3209,62 @@ _wrap_WriteProblemToLpFile(int argc, VALUE *argv, VALUE self) {
     SWIG_exception_fail(SWIG_ArgError(ecode2), Ruby_Format_TypeError( "", "long","WriteProblemToLpFile", 2, argv[1] ));
   } 
   arg2 = static_cast< long >(val2);
-  result = (long)WriteProblemToLpFile(arg1,arg2);
+  {
+    try {
+      result = (long)WriteProblemToLpFile(arg1,arg2); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
+  vresult = SWIG_From_long(static_cast< long >(result));
+  if (alloc1 == SWIG_NEWOBJ) delete[] buf1;
+  return vresult;
+fail:
+  if (alloc1 == SWIG_NEWOBJ) delete[] buf1;
+  return Qnil;
+}
+
+
+SWIGINTERN VALUE
+_wrap_WriteSolutionToFile(int argc, VALUE *argv, VALUE self) {
+  char *arg1 = (char *) 0 ;
+  long arg2 ;
+  int res1 ;
+  char *buf1 = 0 ;
+  int alloc1 = 0 ;
+  long val2 ;
+  int ecode2 = 0 ;
+  long result;
+  VALUE vresult = Qnil;
+  
+  if ((argc < 2) || (argc > 2)) {
+    rb_raise(rb_eArgError, "wrong # of arguments(%d for 2)",argc); SWIG_fail;
+  }
+  res1 = SWIG_AsCharPtrAndSize(argv[0], &buf1, NULL, &alloc1);
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), Ruby_Format_TypeError( "", "char *","WriteSolutionToFile", 1, argv[0] ));
+  }
+  arg1 = reinterpret_cast< char * >(buf1);
+  ecode2 = SWIG_AsVal_long(argv[1], &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), Ruby_Format_TypeError( "", "long","WriteSolutionToFile", 2, argv[1] ));
+  } 
+  arg2 = static_cast< long >(val2);
+  {
+    try {
+      result = (long)WriteSolutionToFile(arg1,arg2); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   vresult = SWIG_From_long(static_cast< long >(result));
   if (alloc1 == SWIG_NEWOBJ) delete[] buf1;
   return vresult;
@@ -2913,7 +3315,17 @@ _wrap_AddConst(int argc, VALUE *argv, VALUE self) {
     SWIG_exception_fail(SWIG_ArgError(ecode4), Ruby_Format_TypeError( "", "long","AddConst", 4, argv[3] ));
   } 
   arg4 = static_cast< long >(val4);
-  result = (long)AddConst(arg1,arg2,arg3,arg4);
+  {
+    try {
+      result = (long)AddConst(arg1,arg2,arg3,arg4); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   vresult = SWIG_From_long(static_cast< long >(result));
   if (alloc1 == SWIG_NEWOBJ) delete[] buf1;
   return vresult;
@@ -2972,7 +3384,17 @@ _wrap_AddConstBulk(int argc, VALUE *argv, VALUE self) {
     SWIG_exception_fail(SWIG_ArgError(ecode5), Ruby_Format_TypeError( "", "long","AddConstBulk", 5, argv[4] ));
   } 
   arg5 = static_cast< long >(val5);
-  result = (bool)AddConstBulk(arg1,arg2,arg3,arg4,arg5);
+  {
+    try {
+      result = (bool)AddConstBulk(arg1,arg2,arg3,arg4,arg5); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   vresult = SWIG_From_bool(static_cast< bool >(result));
   if (alloc1 == SWIG_NEWOBJ) delete[] buf1;
   return vresult;
@@ -3039,7 +3461,17 @@ _wrap_AddVar(int argc, VALUE *argv, VALUE self) {
     SWIG_exception_fail(SWIG_ArgError(ecode6), Ruby_Format_TypeError( "", "long","AddVar", 6, argv[5] ));
   } 
   arg6 = static_cast< long >(val6);
-  result = (long)AddVar(arg1,arg2,arg3,arg4,arg5,arg6);
+  {
+    try {
+      result = (long)AddVar(arg1,arg2,arg3,arg4,arg5,arg6); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   vresult = SWIG_From_long(static_cast< long >(result));
   if (alloc1 == SWIG_NEWOBJ) delete[] buf1;
   return vresult;
@@ -3114,7 +3546,17 @@ _wrap_AddVarBulk(int argc, VALUE *argv, VALUE self) {
     SWIG_exception_fail(SWIG_ArgError(ecode7), Ruby_Format_TypeError( "", "long","AddVarBulk", 7, argv[6] ));
   } 
   arg7 = static_cast< long >(val7);
-  result = (bool)AddVarBulk(arg1,arg2,arg3,arg4,arg5,arg6,arg7);
+  {
+    try {
+      result = (bool)AddVarBulk(arg1,arg2,arg3,arg4,arg5,arg6,arg7); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   vresult = SWIG_From_bool(static_cast< bool >(result));
   if (alloc1 == SWIG_NEWOBJ) delete[] buf1;
   return vresult;
@@ -3164,7 +3606,17 @@ _wrap_AddNz(int argc, VALUE *argv, VALUE self) {
     SWIG_exception_fail(SWIG_ArgError(ecode4), Ruby_Format_TypeError( "", "long","AddNz", 4, argv[3] ));
   } 
   arg4 = static_cast< long >(val4);
-  result = (long)AddNz(arg1,arg2,arg3,arg4);
+  {
+    try {
+      result = (long)AddNz(arg1,arg2,arg3,arg4); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   vresult = SWIG_From_long(static_cast< long >(result));
   return vresult;
 fail:
@@ -3204,7 +3656,17 @@ _wrap_AddNzToLast(int argc, VALUE *argv, VALUE self) {
     SWIG_exception_fail(SWIG_ArgError(ecode3), Ruby_Format_TypeError( "", "long","AddNzToLast", 3, argv[2] ));
   } 
   arg3 = static_cast< long >(val3);
-  result = (long)AddNzToLast(arg1,arg2,arg3);
+  {
+    try {
+      result = (long)AddNzToLast(arg1,arg2,arg3); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   vresult = SWIG_From_long(static_cast< long >(result));
   return vresult;
 fail:
@@ -3284,7 +3746,17 @@ _wrap_AddNzBulk(int argc, VALUE *argv, VALUE self) {
     SWIG_exception_fail(SWIG_ArgError(ecode8), Ruby_Format_TypeError( "", "long","AddNzBulk", 8, argv[7] ));
   } 
   arg8 = static_cast< long >(val8);
-  result = (long)AddNzBulk(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8);
+  {
+    try {
+      result = (long)AddNzBulk(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   vresult = SWIG_From_long(static_cast< long >(result));
   return vresult;
 fail:
@@ -3332,7 +3804,17 @@ _wrap_SetQpCoef(int argc, VALUE *argv, VALUE self) {
     SWIG_exception_fail(SWIG_ArgError(ecode4), Ruby_Format_TypeError( "", "long","SetQpCoef", 4, argv[3] ));
   } 
   arg4 = static_cast< long >(val4);
-  result = (long)SetQpCoef(arg1,arg2,arg3,arg4);
+  {
+    try {
+      result = (long)SetQpCoef(arg1,arg2,arg3,arg4); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   vresult = SWIG_From_long(static_cast< long >(result));
   return vresult;
 fail:
@@ -3356,7 +3838,17 @@ _wrap_SetNumbers(int argc, VALUE *argv, VALUE self) {
     SWIG_exception_fail(SWIG_ArgError(ecode1), Ruby_Format_TypeError( "", "long","SetNumbers", 1, argv[0] ));
   } 
   arg1 = static_cast< long >(val1);
-  result = (long)SetNumbers(arg1);
+  {
+    try {
+      result = (long)SetNumbers(arg1); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   vresult = SWIG_From_long(static_cast< long >(result));
   return vresult;
 fail:
@@ -3397,7 +3889,17 @@ _wrap_SetLongParam(int argc, VALUE *argv, VALUE self) {
     SWIG_exception_fail(SWIG_ArgError(ecode3), Ruby_Format_TypeError( "", "long","SetLongParam", 3, argv[2] ));
   } 
   arg3 = static_cast< long >(val3);
-  result = (long)SetLongParam(arg1,arg2,arg3);
+  {
+    try {
+      result = (long)SetLongParam(arg1,arg2,arg3); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   vresult = SWIG_From_long(static_cast< long >(result));
   if (alloc1 == SWIG_NEWOBJ) delete[] buf1;
   return vresult;
@@ -3440,7 +3942,17 @@ _wrap_SetDblParam(int argc, VALUE *argv, VALUE self) {
     SWIG_exception_fail(SWIG_ArgError(ecode3), Ruby_Format_TypeError( "", "long","SetDblParam", 3, argv[2] ));
   } 
   arg3 = static_cast< long >(val3);
-  result = (long)SetDblParam(arg1,arg2,arg3);
+  {
+    try {
+      result = (long)SetDblParam(arg1,arg2,arg3); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   vresult = SWIG_From_long(static_cast< long >(result));
   if (alloc1 == SWIG_NEWOBJ) delete[] buf1;
   return vresult;
@@ -3483,7 +3995,17 @@ _wrap_SetBoolParam(int argc, VALUE *argv, VALUE self) {
     SWIG_exception_fail(SWIG_ArgError(ecode3), Ruby_Format_TypeError( "", "long","SetBoolParam", 3, argv[2] ));
   } 
   arg3 = static_cast< long >(val3);
-  result = (long)SetBoolParam(arg1,arg2,arg3);
+  {
+    try {
+      result = (long)SetBoolParam(arg1,arg2,arg3); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   vresult = SWIG_From_long(static_cast< long >(result));
   if (alloc1 == SWIG_NEWOBJ) delete[] buf1;
   return vresult;
@@ -3527,7 +4049,17 @@ _wrap_SetStrParam(int argc, VALUE *argv, VALUE self) {
     SWIG_exception_fail(SWIG_ArgError(ecode3), Ruby_Format_TypeError( "", "long","SetStrParam", 3, argv[2] ));
   } 
   arg3 = static_cast< long >(val3);
-  result = (long)SetStrParam(arg1,arg2,arg3);
+  {
+    try {
+      result = (long)SetStrParam(arg1,arg2,arg3); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   vresult = SWIG_From_long(static_cast< long >(result));
   if (alloc1 == SWIG_NEWOBJ) delete[] buf1;
   if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
@@ -3540,7 +4072,52 @@ fail:
 
 
 SWIGINTERN VALUE
-_wrap_CreateNewModel(int argc, VALUE *argv, VALUE self) {
+_wrap_CreateNewModel__SWIG_0(int argc, VALUE *argv, VALUE self) {
+  char arg1 ;
+  char *arg2 = (char *) 0 ;
+  char val1 ;
+  int ecode1 = 0 ;
+  int res2 ;
+  char *buf2 = 0 ;
+  int alloc2 = 0 ;
+  long result;
+  VALUE vresult = Qnil;
+  
+  if ((argc < 2) || (argc > 2)) {
+    rb_raise(rb_eArgError, "wrong # of arguments(%d for 2)",argc); SWIG_fail;
+  }
+  ecode1 = SWIG_AsVal_char(argv[0], &val1);
+  if (!SWIG_IsOK(ecode1)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode1), Ruby_Format_TypeError( "", "char","CreateNewModel", 1, argv[0] ));
+  } 
+  arg1 = static_cast< char >(val1);
+  res2 = SWIG_AsCharPtrAndSize(argv[1], &buf2, NULL, &alloc2);
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), Ruby_Format_TypeError( "", "char *","CreateNewModel", 2, argv[1] ));
+  }
+  arg2 = reinterpret_cast< char * >(buf2);
+  {
+    try {
+      result = (long)CreateNewModel(arg1,arg2); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
+  vresult = SWIG_From_long(static_cast< long >(result));
+  if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  return vresult;
+fail:
+  if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  return Qnil;
+}
+
+
+SWIGINTERN VALUE
+_wrap_CreateNewModel__SWIG_1(int argc, VALUE *argv, VALUE self) {
   char arg1 ;
   char val1 ;
   int ecode1 = 0 ;
@@ -3555,8 +4132,96 @@ _wrap_CreateNewModel(int argc, VALUE *argv, VALUE self) {
     SWIG_exception_fail(SWIG_ArgError(ecode1), Ruby_Format_TypeError( "", "char","CreateNewModel", 1, argv[0] ));
   } 
   arg1 = static_cast< char >(val1);
-  result = (long)CreateNewModel(arg1);
+  {
+    try {
+      result = (long)CreateNewModel(arg1); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   vresult = SWIG_From_long(static_cast< long >(result));
+  return vresult;
+fail:
+  return Qnil;
+}
+
+
+SWIGINTERN VALUE _wrap_CreateNewModel(int nargs, VALUE *args, VALUE self) {
+  int argc;
+  VALUE argv[2];
+  int ii;
+  
+  argc = nargs;
+  if (argc > 2) SWIG_fail;
+  for (ii = 0; (ii < argc); ++ii) {
+    argv[ii] = args[ii];
+  }
+  if (argc == 1) {
+    int _v;
+    {
+      int res = SWIG_AsVal_char(argv[0], NULL);
+      _v = SWIG_CheckState(res);
+    }
+    if (_v) {
+      return _wrap_CreateNewModel__SWIG_1(nargs, args, self);
+    }
+  }
+  if (argc == 2) {
+    int _v;
+    {
+      int res = SWIG_AsVal_char(argv[0], NULL);
+      _v = SWIG_CheckState(res);
+    }
+    if (_v) {
+      int res = SWIG_AsCharPtrAndSize(argv[1], 0, NULL, 0);
+      _v = SWIG_CheckState(res);
+      if (_v) {
+        return _wrap_CreateNewModel__SWIG_0(nargs, args, self);
+      }
+    }
+  }
+  
+fail:
+  Ruby_Format_OverloadedError( argc, 2, "CreateNewModel", 
+    "    long CreateNewModel(char type, char *name)\n"
+    "    long CreateNewModel(char type)\n");
+  
+  return Qnil;
+}
+
+
+SWIGINTERN VALUE
+_wrap_IsSolverAvailable(int argc, VALUE *argv, VALUE self) {
+  char arg1 ;
+  char val1 ;
+  int ecode1 = 0 ;
+  bool result;
+  VALUE vresult = Qnil;
+  
+  if ((argc < 1) || (argc > 1)) {
+    rb_raise(rb_eArgError, "wrong # of arguments(%d for 1)",argc); SWIG_fail;
+  }
+  ecode1 = SWIG_AsVal_char(argv[0], &val1);
+  if (!SWIG_IsOK(ecode1)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode1), Ruby_Format_TypeError( "", "char","IsSolverAvailable", 1, argv[0] ));
+  } 
+  arg1 = static_cast< char >(val1);
+  {
+    try {
+      result = (bool)IsSolverAvailable(arg1); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
+  vresult = SWIG_From_bool(static_cast< bool >(result));
   return vresult;
 fail:
   return Qnil;
@@ -3603,7 +4268,17 @@ _wrap_CopyOrder(int argc, VALUE *argv, VALUE self) {
     SWIG_exception_fail(SWIG_ArgError(res4), Ruby_Format_TypeError( "", "int *","CopyOrder", 4, argv[3] )); 
   }
   arg4 = reinterpret_cast< int * >(argp4);
-  result = (long)CopyOrder(arg1,arg2,arg3,arg4);
+  {
+    try {
+      result = (long)CopyOrder(arg1,arg2,arg3,arg4); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   vresult = SWIG_From_long(static_cast< long >(result));
   return vresult;
 fail:
@@ -3627,7 +4302,17 @@ _wrap_DeleteModel(int argc, VALUE *argv, VALUE self) {
     SWIG_exception_fail(SWIG_ArgError(ecode1), Ruby_Format_TypeError( "", "long","DeleteModel", 1, argv[0] ));
   } 
   arg1 = static_cast< long >(val1);
-  result = (long)DeleteModel(arg1);
+  {
+    try {
+      result = (long)DeleteModel(arg1); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   vresult = SWIG_From_long(static_cast< long >(result));
   return vresult;
 fail:
@@ -3651,7 +4336,17 @@ _wrap_CreateModel(int argc, VALUE *argv, VALUE self) {
     SWIG_exception_fail(SWIG_ArgError(ecode1), Ruby_Format_TypeError( "", "long","CreateModel", 1, argv[0] ));
   } 
   arg1 = static_cast< long >(val1);
-  result = (long)CreateModel(arg1);
+  {
+    try {
+      result = (long)CreateModel(arg1); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   vresult = SWIG_From_long(static_cast< long >(result));
   return vresult;
 fail:
@@ -3675,7 +4370,17 @@ _wrap_SolveModel(int argc, VALUE *argv, VALUE self) {
     SWIG_exception_fail(SWIG_ArgError(ecode1), Ruby_Format_TypeError( "", "long","SolveModel", 1, argv[0] ));
   } 
   arg1 = static_cast< long >(val1);
-  result = (long)SolveModel(arg1);
+  {
+    try {
+      result = (long)SolveModel(arg1); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   vresult = SWIG_From_long(static_cast< long >(result));
   return vresult;
 fail:
@@ -3715,7 +4420,17 @@ _wrap_GetSolVars(int argc, VALUE *argv, VALUE self) {
     SWIG_exception_fail(SWIG_ArgError(ecode3), Ruby_Format_TypeError( "", "long","GetSolVars", 3, argv[2] ));
   } 
   arg3 = static_cast< long >(val3);
-  result = (bool)GetSolVars(arg1,arg2,arg3);
+  {
+    try {
+      result = (bool)GetSolVars(arg1,arg2,arg3); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   vresult = SWIG_From_bool(static_cast< bool >(result));
   return vresult;
 fail:
@@ -3739,7 +4454,17 @@ _wrap_HasSolution(int argc, VALUE *argv, VALUE self) {
     SWIG_exception_fail(SWIG_ArgError(ecode1), Ruby_Format_TypeError( "", "long","HasSolution", 1, argv[0] ));
   } 
   arg1 = static_cast< long >(val1);
-  result = (bool)HasSolution(arg1);
+  {
+    try {
+      result = (bool)HasSolution(arg1); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   vresult = SWIG_From_bool(static_cast< bool >(result));
   return vresult;
 fail:
@@ -3779,7 +4504,17 @@ _wrap_GetDualPrices(int argc, VALUE *argv, VALUE self) {
     SWIG_exception_fail(SWIG_ArgError(ecode3), Ruby_Format_TypeError( "", "long","GetDualPrices", 3, argv[2] ));
   } 
   arg3 = static_cast< long >(val3);
-  result = (bool)GetDualPrices(arg1,arg2,arg3);
+  {
+    try {
+      result = (bool)GetDualPrices(arg1,arg2,arg3); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   vresult = SWIG_From_bool(static_cast< bool >(result));
   return vresult;
 fail:
@@ -3819,7 +4554,17 @@ _wrap_GetReducedCosts(int argc, VALUE *argv, VALUE self) {
     SWIG_exception_fail(SWIG_ArgError(ecode3), Ruby_Format_TypeError( "", "long","GetReducedCosts", 3, argv[2] ));
   } 
   arg3 = static_cast< long >(val3);
-  result = (bool)GetReducedCosts(arg1,arg2,arg3);
+  {
+    try {
+      result = (bool)GetReducedCosts(arg1,arg2,arg3); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   vresult = SWIG_From_bool(static_cast< bool >(result));
   return vresult;
 fail:
@@ -3867,7 +4612,17 @@ _wrap_GetRowValues(int argc, VALUE *argv, VALUE self) {
     SWIG_exception_fail(SWIG_ArgError(ecode4), Ruby_Format_TypeError( "", "long","GetRowValues", 4, argv[3] ));
   } 
   arg4 = static_cast< long >(val4);
-  result = (bool)GetRowValues(arg1,arg2,arg3,arg4);
+  {
+    try {
+      result = (bool)GetRowValues(arg1,arg2,arg3,arg4); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   vresult = SWIG_From_bool(static_cast< bool >(result));
   return vresult;
 fail:
@@ -3907,7 +4662,17 @@ _wrap_GetObjCoef(int argc, VALUE *argv, VALUE self) {
     SWIG_exception_fail(SWIG_ArgError(ecode3), Ruby_Format_TypeError( "", "long","GetObjCoef", 3, argv[2] ));
   } 
   arg3 = static_cast< long >(val3);
-  result = (bool)GetObjCoef(arg1,arg2,arg3);
+  {
+    try {
+      result = (bool)GetObjCoef(arg1,arg2,arg3); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   vresult = SWIG_From_bool(static_cast< bool >(result));
   return vresult;
 fail:
@@ -3955,7 +4720,201 @@ _wrap_GetBounds(int argc, VALUE *argv, VALUE self) {
     SWIG_exception_fail(SWIG_ArgError(ecode4), Ruby_Format_TypeError( "", "long","GetBounds", 4, argv[3] ));
   } 
   arg4 = static_cast< long >(val4);
-  result = (bool)GetBounds(arg1,arg2,arg3,arg4);
+  {
+    try {
+      result = (bool)GetBounds(arg1,arg2,arg3,arg4); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
+  vresult = SWIG_From_bool(static_cast< bool >(result));
+  return vresult;
+fail:
+  return Qnil;
+}
+
+
+SWIGINTERN VALUE
+_wrap_GetLowerBound(int argc, VALUE *argv, VALUE self) {
+  long arg1 ;
+  long arg2 ;
+  long val1 ;
+  int ecode1 = 0 ;
+  long val2 ;
+  int ecode2 = 0 ;
+  double result;
+  VALUE vresult = Qnil;
+  
+  if ((argc < 2) || (argc > 2)) {
+    rb_raise(rb_eArgError, "wrong # of arguments(%d for 2)",argc); SWIG_fail;
+  }
+  ecode1 = SWIG_AsVal_long(argv[0], &val1);
+  if (!SWIG_IsOK(ecode1)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode1), Ruby_Format_TypeError( "", "long","GetLowerBound", 1, argv[0] ));
+  } 
+  arg1 = static_cast< long >(val1);
+  ecode2 = SWIG_AsVal_long(argv[1], &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), Ruby_Format_TypeError( "", "long","GetLowerBound", 2, argv[1] ));
+  } 
+  arg2 = static_cast< long >(val2);
+  {
+    try {
+      result = (double)GetLowerBound(arg1,arg2); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
+  vresult = SWIG_From_double(static_cast< double >(result));
+  return vresult;
+fail:
+  return Qnil;
+}
+
+
+SWIGINTERN VALUE
+_wrap_GetUpperBound(int argc, VALUE *argv, VALUE self) {
+  long arg1 ;
+  long arg2 ;
+  long val1 ;
+  int ecode1 = 0 ;
+  long val2 ;
+  int ecode2 = 0 ;
+  double result;
+  VALUE vresult = Qnil;
+  
+  if ((argc < 2) || (argc > 2)) {
+    rb_raise(rb_eArgError, "wrong # of arguments(%d for 2)",argc); SWIG_fail;
+  }
+  ecode1 = SWIG_AsVal_long(argv[0], &val1);
+  if (!SWIG_IsOK(ecode1)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode1), Ruby_Format_TypeError( "", "long","GetUpperBound", 1, argv[0] ));
+  } 
+  arg1 = static_cast< long >(val1);
+  ecode2 = SWIG_AsVal_long(argv[1], &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), Ruby_Format_TypeError( "", "long","GetUpperBound", 2, argv[1] ));
+  } 
+  arg2 = static_cast< long >(val2);
+  {
+    try {
+      result = (double)GetUpperBound(arg1,arg2); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
+  vresult = SWIG_From_double(static_cast< double >(result));
+  return vresult;
+fail:
+  return Qnil;
+}
+
+
+SWIGINTERN VALUE
+_wrap_SetLowerBound(int argc, VALUE *argv, VALUE self) {
+  long arg1 ;
+  double arg2 ;
+  long arg3 ;
+  long val1 ;
+  int ecode1 = 0 ;
+  double val2 ;
+  int ecode2 = 0 ;
+  long val3 ;
+  int ecode3 = 0 ;
+  bool result;
+  VALUE vresult = Qnil;
+  
+  if ((argc < 3) || (argc > 3)) {
+    rb_raise(rb_eArgError, "wrong # of arguments(%d for 3)",argc); SWIG_fail;
+  }
+  ecode1 = SWIG_AsVal_long(argv[0], &val1);
+  if (!SWIG_IsOK(ecode1)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode1), Ruby_Format_TypeError( "", "long","SetLowerBound", 1, argv[0] ));
+  } 
+  arg1 = static_cast< long >(val1);
+  ecode2 = SWIG_AsVal_double(argv[1], &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), Ruby_Format_TypeError( "", "double","SetLowerBound", 2, argv[1] ));
+  } 
+  arg2 = static_cast< double >(val2);
+  ecode3 = SWIG_AsVal_long(argv[2], &val3);
+  if (!SWIG_IsOK(ecode3)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode3), Ruby_Format_TypeError( "", "long","SetLowerBound", 3, argv[2] ));
+  } 
+  arg3 = static_cast< long >(val3);
+  {
+    try {
+      result = (bool)SetLowerBound(arg1,arg2,arg3); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
+  vresult = SWIG_From_bool(static_cast< bool >(result));
+  return vresult;
+fail:
+  return Qnil;
+}
+
+
+SWIGINTERN VALUE
+_wrap_SetUpperBound(int argc, VALUE *argv, VALUE self) {
+  long arg1 ;
+  double arg2 ;
+  long arg3 ;
+  long val1 ;
+  int ecode1 = 0 ;
+  double val2 ;
+  int ecode2 = 0 ;
+  long val3 ;
+  int ecode3 = 0 ;
+  bool result;
+  VALUE vresult = Qnil;
+  
+  if ((argc < 3) || (argc > 3)) {
+    rb_raise(rb_eArgError, "wrong # of arguments(%d for 3)",argc); SWIG_fail;
+  }
+  ecode1 = SWIG_AsVal_long(argv[0], &val1);
+  if (!SWIG_IsOK(ecode1)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode1), Ruby_Format_TypeError( "", "long","SetUpperBound", 1, argv[0] ));
+  } 
+  arg1 = static_cast< long >(val1);
+  ecode2 = SWIG_AsVal_double(argv[1], &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), Ruby_Format_TypeError( "", "double","SetUpperBound", 2, argv[1] ));
+  } 
+  arg2 = static_cast< double >(val2);
+  ecode3 = SWIG_AsVal_long(argv[2], &val3);
+  if (!SWIG_IsOK(ecode3)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode3), Ruby_Format_TypeError( "", "long","SetUpperBound", 3, argv[2] ));
+  } 
+  arg3 = static_cast< long >(val3);
+  {
+    try {
+      result = (bool)SetUpperBound(arg1,arg2,arg3); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   vresult = SWIG_From_bool(static_cast< bool >(result));
   return vresult;
 fail:
@@ -3987,7 +4946,17 @@ _wrap_GetRHS(int argc, VALUE *argv, VALUE self) {
     SWIG_exception_fail(SWIG_ArgError(ecode2), Ruby_Format_TypeError( "", "long","GetRHS", 2, argv[1] ));
   } 
   arg2 = static_cast< long >(val2);
-  result = (double)GetRHS(arg1,arg2);
+  {
+    try {
+      result = (double)GetRHS(arg1,arg2); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   vresult = SWIG_From_double(static_cast< double >(result));
   return vresult;
 fail:
@@ -4027,7 +4996,17 @@ _wrap_SetRHS(int argc, VALUE *argv, VALUE self) {
     SWIG_exception_fail(SWIG_ArgError(ecode3), Ruby_Format_TypeError( "", "long","SetRHS", 3, argv[2] ));
   } 
   arg3 = static_cast< long >(val3);
-  result = (bool)SetRHS(arg1,arg2,arg3);
+  {
+    try {
+      result = (bool)SetRHS(arg1,arg2,arg3); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   vresult = SWIG_From_bool(static_cast< bool >(result));
   return vresult;
 fail:
@@ -4059,7 +5038,17 @@ _wrap_GetSense(int argc, VALUE *argv, VALUE self) {
     SWIG_exception_fail(SWIG_ArgError(ecode2), Ruby_Format_TypeError( "", "long","GetSense", 2, argv[1] ));
   } 
   arg2 = static_cast< long >(val2);
-  result = (char)GetSense(arg1,arg2);
+  {
+    try {
+      result = (char)GetSense(arg1,arg2); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   vresult = SWIG_From_char(static_cast< char >(result));
   return vresult;
 fail:
@@ -4099,7 +5088,17 @@ _wrap_SetSense(int argc, VALUE *argv, VALUE self) {
     SWIG_exception_fail(SWIG_ArgError(ecode3), Ruby_Format_TypeError( "", "long","SetSense", 3, argv[2] ));
   } 
   arg3 = static_cast< long >(val3);
-  result = (bool)SetSense(arg1,arg2,arg3);
+  {
+    try {
+      result = (bool)SetSense(arg1,arg2,arg3); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   vresult = SWIG_From_bool(static_cast< bool >(result));
   return vresult;
 fail:
@@ -4123,7 +5122,17 @@ _wrap_GetObjVal(int argc, VALUE *argv, VALUE self) {
     SWIG_exception_fail(SWIG_ArgError(ecode1), Ruby_Format_TypeError( "", "long","GetObjVal", 1, argv[0] ));
   } 
   arg1 = static_cast< long >(val1);
-  result = (double)GetObjVal(arg1);
+  {
+    try {
+      result = (double)GetObjVal(arg1); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   vresult = SWIG_From_double(static_cast< double >(result));
   return vresult;
 fail:
@@ -4180,7 +5189,17 @@ _wrap_ChangeBulkBounds(int argc, VALUE *argv, VALUE self) {
     SWIG_exception_fail(SWIG_ArgError(ecode5), Ruby_Format_TypeError( "", "long","ChangeBulkBounds", 5, argv[4] ));
   } 
   arg5 = static_cast< long >(val5);
-  result = (long)ChangeBulkBounds(arg1,arg2,arg3,arg4,arg5);
+  {
+    try {
+      result = (long)ChangeBulkBounds(arg1,arg2,arg3,arg4,arg5); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   vresult = SWIG_From_long(static_cast< long >(result));
   if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
   return vresult;
@@ -4230,7 +5249,17 @@ _wrap_ChangeBulkObjectives(int argc, VALUE *argv, VALUE self) {
     SWIG_exception_fail(SWIG_ArgError(ecode4), Ruby_Format_TypeError( "", "long","ChangeBulkObjectives", 4, argv[3] ));
   } 
   arg4 = static_cast< long >(val4);
-  result = (long)ChangeBulkObjectives(arg1,arg2,arg3,arg4);
+  {
+    try {
+      result = (long)ChangeBulkObjectives(arg1,arg2,arg3,arg4); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   vresult = SWIG_From_long(static_cast< long >(result));
   return vresult;
 fail:
@@ -4254,7 +5283,17 @@ _wrap_DeleteMipStarts(int argc, VALUE *argv, VALUE self) {
     SWIG_exception_fail(SWIG_ArgError(ecode1), Ruby_Format_TypeError( "", "long","DeleteMipStarts", 1, argv[0] ));
   } 
   arg1 = static_cast< long >(val1);
-  result = (long)DeleteMipStarts(arg1);
+  {
+    try {
+      result = (long)DeleteMipStarts(arg1); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   vresult = SWIG_From_long(static_cast< long >(result));
   return vresult;
 fail:
@@ -4278,7 +5317,17 @@ _wrap_GetMIPRelativeGap(int argc, VALUE *argv, VALUE self) {
     SWIG_exception_fail(SWIG_ArgError(ecode1), Ruby_Format_TypeError( "", "long","GetMIPRelativeGap", 1, argv[0] ));
   } 
   arg1 = static_cast< long >(val1);
-  result = (double)GetMIPRelativeGap(arg1);
+  {
+    try {
+      result = (double)GetMIPRelativeGap(arg1); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   vresult = SWIG_From_double(static_cast< double >(result));
   return vresult;
 fail:
@@ -4620,7 +5669,11 @@ SWIGEXPORT void Init_genmodel(void) {
   SwigClassDoubleVector.mark = 0;
   SwigClassDoubleVector.destroy = (void (*)(void *)) free_InterfaceVector_Sl_double_Sg_;
   SwigClassDoubleVector.trackObjects = 0;
+  rb_define_module_function(mGenmodel, "FindConstraintMaxLhs", VALUEFUNC(_wrap_FindConstraintMaxLhs), -1);
+  rb_define_module_function(mGenmodel, "FindConstraintMinLhs", VALUEFUNC(_wrap_FindConstraintMinLhs), -1);
+  rb_define_module_function(mGenmodel, "MakeConstraintFeasible", VALUEFUNC(_wrap_MakeConstraintFeasible), -1);
   rb_define_module_function(mGenmodel, "WriteProblemToLpFile", VALUEFUNC(_wrap_WriteProblemToLpFile), -1);
+  rb_define_module_function(mGenmodel, "WriteSolutionToFile", VALUEFUNC(_wrap_WriteSolutionToFile), -1);
   rb_define_module_function(mGenmodel, "AddConst", VALUEFUNC(_wrap_AddConst), -1);
   rb_define_module_function(mGenmodel, "AddConstBulk", VALUEFUNC(_wrap_AddConstBulk), -1);
   rb_define_module_function(mGenmodel, "AddVar", VALUEFUNC(_wrap_AddVar), -1);
@@ -4635,6 +5688,7 @@ SWIGEXPORT void Init_genmodel(void) {
   rb_define_module_function(mGenmodel, "SetBoolParam", VALUEFUNC(_wrap_SetBoolParam), -1);
   rb_define_module_function(mGenmodel, "SetStrParam", VALUEFUNC(_wrap_SetStrParam), -1);
   rb_define_module_function(mGenmodel, "CreateNewModel", VALUEFUNC(_wrap_CreateNewModel), -1);
+  rb_define_module_function(mGenmodel, "IsSolverAvailable", VALUEFUNC(_wrap_IsSolverAvailable), -1);
   rb_define_module_function(mGenmodel, "CopyOrder", VALUEFUNC(_wrap_CopyOrder), -1);
   rb_define_module_function(mGenmodel, "DeleteModel", VALUEFUNC(_wrap_DeleteModel), -1);
   rb_define_module_function(mGenmodel, "CreateModel", VALUEFUNC(_wrap_CreateModel), -1);
@@ -4646,6 +5700,10 @@ SWIGEXPORT void Init_genmodel(void) {
   rb_define_module_function(mGenmodel, "GetRowValues", VALUEFUNC(_wrap_GetRowValues), -1);
   rb_define_module_function(mGenmodel, "GetObjCoef", VALUEFUNC(_wrap_GetObjCoef), -1);
   rb_define_module_function(mGenmodel, "GetBounds", VALUEFUNC(_wrap_GetBounds), -1);
+  rb_define_module_function(mGenmodel, "GetLowerBound", VALUEFUNC(_wrap_GetLowerBound), -1);
+  rb_define_module_function(mGenmodel, "GetUpperBound", VALUEFUNC(_wrap_GetUpperBound), -1);
+  rb_define_module_function(mGenmodel, "SetLowerBound", VALUEFUNC(_wrap_SetLowerBound), -1);
+  rb_define_module_function(mGenmodel, "SetUpperBound", VALUEFUNC(_wrap_SetUpperBound), -1);
   rb_define_module_function(mGenmodel, "GetRHS", VALUEFUNC(_wrap_GetRHS), -1);
   rb_define_module_function(mGenmodel, "SetRHS", VALUEFUNC(_wrap_SetRHS), -1);
   rb_define_module_function(mGenmodel, "GetSense", VALUEFUNC(_wrap_GetSense), -1);

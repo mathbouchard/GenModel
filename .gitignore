@@ -14,5 +14,19 @@
 *.a
 *.lib
 
+# Octave libraries
+gensolve.oct
+
+# Ruby gem
+*.bundle
+*.gem
+
+# Xxode file
+*.xccheckout
+*.xcuserstate
+
 # Ignore specific files
+*.dblite
 .DS_Store
+
+

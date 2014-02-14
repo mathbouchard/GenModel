@@ -51,6 +51,7 @@ public:
 	long nr;
 	long onc;
 	long onr;
+    CPXFILEptr cpxfileptr;
 };
 
 class GenModelCplex : public GenModel
@@ -69,6 +70,7 @@ public:
 	long ChangeBulkObjectives(int count, int * ind, double * vals);
     long ChangeBulkNz(int count, int* rind, int* cind, double* vals);
     long WriteProblemToLpFile(string filename);
+    long WriteSolutionToFile(string filename);
     long SwitchToMip();
     long SwitchToLp();
 	long DeleteMipStarts();

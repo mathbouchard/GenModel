@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Workspace
+   version = "1.0">
+   <FileRef
+      location = "group:../../gitwork/GenModel/src/GenModel.cpp">
+   </FileRef>
+   <FileRef
+      location = "group:../../gitwork/GenModel/src/GenModel.h">
+   </FileRef>
+   <FileRef
+      location = "group:../../gitwork/GenModel/src/GenModelCplex.cpp">
+   </FileRef>
+   <FileRef
+      location = "group:../../gitwork/GenModel/src/GenModelCplex.h">
+   </FileRef>
+   <FileRef
+      location = "group:../../gitwork/GenModel/src/GenModelGlpk.cpp">
+   </FileRef>
+   <FileRef
+      location = "group:../../gitwork/GenModel/src/GenModelGlpk.h">
+   </FileRef>
+   <FileRef
+      location = "group:../../gitwork/GenModel/src/GenModelInterface.cpp">
+   </FileRef>
+   <FileRef
+      location = "group:src/GenModelScip.cpp">
+   </FileRef>
+   <FileRef
+      location = "group:src/GenModelScip.h">
+   </FileRef>
+   <FileRef
+      location = "group:../../gitwork/GenModel/src/GenModelInterface.h">
+   </FileRef>
+   <FileRef
+      location = "group:src/GenModelInterface.i">
+   </FileRef>
+   <FileRef
+      location = "group:src/GenModelInterface_python.cpp">
+   </FileRef>
+   <FileRef
+      location = "group:src/GenModelInterface_ruby.cpp">
+   </FileRef>
+   <FileRef
+      location = "group:../../gitwork/GenModel/src/GenModelOctave.cpp">
+   </FileRef>
+   <FileRef
+      location = "group:../../gitwork/GenModel/src/GenModelOctave.h">
+   </FileRef>
+   <FileRef
+      location = "group:../../gitwork/GenModel/src/HyperGraph.cpp">
+   </FileRef>
+   <FileRef
+      location = "group:../../gitwork/GenModel/src/HyperGraph.h">
+   </FileRef>
+   <FileRef
+      location = "container:../../gitwork/GenModel/build-debug/SConscript">
+   </FileRef>
+   <FileRef
+      location = "group:build-release/SConscript">
+   </FileRef>
+   <FileRef
+      location = "group:src/GenModelCoin.cpp">
+   </FileRef>
+   <FileRef
+      location = "group:src/GenModelCoin.h">
+   </FileRef>
+   <FileRef
+      location = "group:gem/genmodel.gemspec">
+   </FileRef>
+</Workspace>

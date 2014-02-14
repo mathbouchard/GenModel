@@ -36,7 +36,8 @@ cpppath = {
               r"/Users/mbouchard/.rvm/rubies/ruby-1.9.3-p392/include/ruby-1.9.1",
               r"/Users/mbouchard/.rvm/rubies/ruby-1.9.3-p392/include/ruby-1.9.1/x86_64-darwin13.0.2",
               r"/System/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7",
-	      r"/Users/mbouchard/source/scipoptsuite-3.0.2/scip-3.0.2/src/"]
+	      r"/Users/mbouchard/source/scipoptsuite-3.0.2/scip-3.0.2/src/",
+          r"/usr/local/Cellar/cbc/2.8.6/include/coin/"]
     }
         
 libpath = {
@@ -48,7 +49,8 @@ libpath = {
               r"/Library/gurobi560/mac64/lib",
               r"/Users/mbouchard/.rvm/rubies/ruby-1.9.3-p392/lib",
               r"/System/Library/Frameworks/Python.framework/Versions/2.7/lib/",
-	      r"/Users/mbouchard/source/scipoptsuite-3.0.2/scip-3.0.2/lib/"]
+	      r"/Users/mbouchard/source/scipoptsuite-3.0.2/scip-3.0.2/lib/",
+          r"/usr/local/Cellar/cbc/2.8.6/lib/"]
     }
 
 cppdefines = []
@@ -87,12 +89,17 @@ moduleLibs = {
         "Linux": ["scip"],
         "Windows": ["scip"],
         "Darwin": ["scip"]
+        },
+    "Coin": {
+        "Linux": ["Clp", "CoinUtils"],
+        "Windows": ["Clp", "CoinUtils"],
+        "Darwin": ["Clp", "CoinUtils"]
         }
     }
 
 
 missingModules = []
-excludedModules = ["Glpk","Scip","Gurobi","HyperGraph"]
+excludedModules = ["Scip","Gurobi","HyperGraph"]
 
 for module in moduleLibs:
     allModulePresents = True

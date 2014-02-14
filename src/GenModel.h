@@ -105,9 +105,16 @@ public:
 	virtual long SetSol() = 0;
     virtual long ChangeBulkBounds(int count, int * ind, char * type, double * vals);
 	virtual long WriteProblemToLpFile(string filename);
+    virtual long WriteSolutionToFile(string filename);
 	virtual long ChangeBulkObjectives(int count, int * ind, double * vals);
 	virtual long DeleteMipStarts();
 	virtual double GetMIPRelativeGap();
+    virtual double FindConstraintMaxLhs(long row);
+    virtual double FindConstraintMinLhs(long row);
+    virtual long MakeConstraintFeasible(long row);
+    bool binit;
+    bool bcreated;
+    string name;
 	
 	vector<ModConsts> consts;
 	map<string,long> ci;

@@ -1,12 +1,22 @@
 /* GenModelInterface.h : main header file for the GenModelDLL DLL */
 
+%include exception.i
+
+%exception {
+	try { $function }
+    catch(string str) { SWIG_exception(SWIG_RuntimeError,str.c_str()); }
+    catch(...) { SWIG_exception(SWIG_RuntimeError,"Unknown exception"); }
+}
 
 %module genmodel
 %{
 /* Put header files here or function declarations like below */
     #include "GenModelInterface.h"
-    
+    double FindConstraintMaxLhs(long row, long token);
+    double FindConstraintMinLhs(long row, long token);
+    long MakeConstraintFeasible(long row, long token);
     long WriteProblemToLpFile(char* filename, long token);
+    long WriteSolutionToFile(char* filename, long token);
     long AddConst(char* cname, double rhs, char sense, long token);
     bool AddConstBulk(char* cname, double* rhs, long length, char sense, long token);
     long AddVar(char* nn, double o, double l, double u, char t, long token);
@@ -20,7 +30,8 @@
     long SetDblParam(char* param, double val, long token);
     long SetBoolParam(char* param, bool val, long token);
     long SetStrParam(char* param, char* val, long token);
-    long CreateNewModel(char model);
+    long CreateNewModel(char type, char* name = NULL);
+    bool IsSolverAvailable(char type);
     long CopyOrder(long token, int count, int* ind, int* weight);
     long DeleteModel(long token);
     long CreateModel(long token);
@@ -32,6 +43,10 @@
     bool GetRowValues(double* values, long length, long rowIndex, long token);
     bool GetObjCoef(double* values, long length, long token);
     bool GetBounds(double* lb, double* ub, long length, long token);
+    double GetLowerBound(long col, long token);
+    double GetUpperBound(long col, long token);
+    bool SetLowerBound(long col, double val, long token);
+    bool SetUpperBound(long col, double val, long token);
     double GetRHS(long row, long token);
     bool SetRHS(long row, double val, long token);
     char GetSense(long row, long token);
@@ -116,8 +131,11 @@ private:
 };
 */
 
-
+double FindConstraintMaxLhs(long row, long token);
+double FindConstraintMinLhs(long row, long token);
+long MakeConstraintFeasible(long row, long token);
 long WriteProblemToLpFile(char* filename, long token);
+long WriteSolutionToFile(char* filename, long token);
 long AddConst(char* cname, double rhs, char sense, long token);
 bool AddConstBulk(char* cname, double* rhs, long length, char sense, long token);
 long AddVar(char* nn, double o, double l, double u, char t, long token);
@@ -131,7 +149,8 @@ long SetLongParam(char* param, long val, long token);
 long SetDblParam(char* param, double val, long token);
 long SetBoolParam(char* param, bool val, long token);
 long SetStrParam(char* param, char* val, long token);
-long CreateNewModel(char model);
+long CreateNewModel(char type, char* name = NULL);
+bool IsSolverAvailable(char type);
 long CopyOrder(long token, int count, int* ind, int* weight);
 long DeleteModel(long token);
 long CreateModel(long token);
@@ -143,6 +162,10 @@ bool GetReducedCosts(double* values, long length, long token);
 bool GetRowValues(double* values, long length, long rowIndex, long token);
 bool GetObjCoef(double* values, long length, long token);
 bool GetBounds(double* lb, double* ub, long length, long token);
+double GetLowerBound(long col, long token);
+double GetUpperBound(long col, long token);
+bool SetLowerBound(long col, double val, long token);
+bool SetUpperBound(long col, double val, long token);
 double GetRHS(long row, long token);
 bool SetRHS(long row, double val, long token);
 char GetSense(long row, long token);

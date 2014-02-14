@@ -19,6 +19,10 @@
 	#include "GenModelGlpk.h"
 #endif
 
+#ifdef COIN_MODULE
+    #include "GenModelCoin.h"
+#endif
+
 #include <vector>
 #include <memory.h>
 
@@ -26,13 +30,51 @@ using namespace std;
 
 vector<GenModel*> gmmap;
 
+bool VerifyId(long token)
+{
+    if(token <0 || token >= gmmap.size())
+    {
+        throw string("Model id out of bound");
+        return false;
+    }
+    else
+        return true;
+    
+}
+
 long WriteProblemToLpFile(char* filename, long token)
 {
+    VerifyId(token);
     return gmmap[token]->WriteProblemToLpFile(string(filename));
+}
+
+long WriteSolutionToFile(char* filename, long token)
+{
+    VerifyId(token);
+    return gmmap[token]->WriteSolutionToFile(string(filename));
+}
+
+double FindConstraintMaxLhs(long row, long token)
+{
+    VerifyId(token);
+    return gmmap[token]->FindConstraintMaxLhs(row);
+}
+
+double FindConstraintMinLhs(long row, long token)
+{
+    VerifyId(token);
+    return gmmap[token]->FindConstraintMinLhs(row);
+}
+
+long MakeConstraintFeasible(long row, long token)
+{
+    VerifyId(token);
+    return gmmap[token]->MakeConstraintFeasible(row);
 }
 
 long AddConst(char* cname, double rhs, char sense, long token)
 {
+    VerifyId(token);
     //printf("AddConst : name=%s, rhs=%f, sense=%c, token=%ld\n", cname, rhs, sense, token);
 	string cnameAsString(cname);
 	return gmmap[token]->AddConst(cnameAsString, rhs, sense);
@@ -40,6 +82,7 @@ long AddConst(char* cname, double rhs, char sense, long token)
 
 bool AddConstBulk(char* cname, double* rhs, long length, char sense, long token)
 {
+    VerifyId(token);
 	string cnameAsString(cname);
 	for (int i = 0; i < length; i++)
 	{
@@ -50,6 +93,7 @@ bool AddConstBulk(char* cname, double* rhs, long length, char sense, long token)
 
 long AddVar(char* nn, double o, double l, double u, char t, long token)
 {
+    VerifyId(token);
     //printf("AddVar : name=%s, obj=%f, lower=%f, upper=%f, type=%c, token=%ld\n", nn, o, l, u, t, token);
 	string nnAsString(nn);
 	return gmmap[token]->AddVar(nnAsString, o, l, u, t);
@@ -57,6 +101,7 @@ long AddVar(char* nn, double o, double l, double u, char t, long token)
 
 bool AddVarBulk(char* nn, double* o, long length, double l, double u, char t, long token)
 {
+    VerifyId(token);
 	string nnAsString(nn);
 	for (int i = 0; i < length; i++)
 	{
@@ -67,22 +112,26 @@ bool AddVarBulk(char* nn, double* o, long length, double l, double u, char t, lo
 
 long SetQpCoef(long i, long j, double val, long token)
 {
+    VerifyId(token);
     return gmmap[token]->vars.SetQpCoef(i, j, val);
 }
 
 long AddNz(long row, long col, double val, long token)
 {
+    VerifyId(token);
 	return gmmap[token]->AddNz(row, col, val);
 }
 
 long AddNzToLast(long col, double val, long token)
 {
+    VerifyId(token);
     //printf("AddNzToLast : col=%d, val=%f, token=%ld\n", col, val, token);
 	return gmmap[token]->AddNzToLast(col, val);
 }
 
 long AddNzBulk(long* rows, long* cols, double* values, long valuesLength, long rowCount, long colCount, long iterations, long token)
 {
+    VerifyId(token);
 	//printf ("AddNzBulk %ld,%ld,%ld,%ld\n",valuesLength, rowCount, colCount, iterations);
 
 	int rowIndex = 0;
@@ -104,23 +153,27 @@ long AddNzBulk(long* rows, long* cols, double* values, long valuesLength, long r
 
 long SetNumbers(long token)
 {
+    VerifyId(token);
 	return gmmap[token]->SetNumbers();
 }
 
 long SetLongParam(char* param, long val, long token)
 {
+    VerifyId(token);
 	string paramAsString(param);
 	return gmmap[token]->SetLongParam(paramAsString, val);
 }
 
 long SetDblParam(char* param, double val, long token)
 {
+    VerifyId(token);
 	string paramAsString(param);
 	return gmmap[token]->SetDblParam(paramAsString, val);
 }
 
 long SetBoolParam(char* param, bool val, long token)
 {
+    VerifyId(token);
     //printf("SetBoolParam : param=%s, val=%d, token=%ld\n", param, val, token);
 	string paramAsString(param);
 	return gmmap[token]->SetBoolParam(paramAsString, val);
@@ -128,67 +181,105 @@ long SetBoolParam(char* param, bool val, long token)
 
 long SetStrParam(char* param, char* val, long token)
 {
+    VerifyId(token);
 	string paramAsString(param);
 	string valueAsString(val);
 	return gmmap[token]->SetStrParam(paramAsString, valueAsString);
 }
 
-long CreateNewModel(char model)
+long CreateNewModel(char type, char* name = NULL)
 {
 	long ret = gmmap.size();
-	if (model == 'C') // Cplex
-	{
-		CPLEX_CREATE
-	}
-	else if (model == 'G') // Gurobi
-	{
-		GUROBI_CREATE
-	}
-	else if (model == 'H') // Hyper-graph
-	{
-		HG_CREATE
-	}
-	else if (model == 'K') // Glpk
-	{
-		GLPK_CREATE
-	}
-	else
-	{
-		throw new exception();
-	}
-	
-    //printf("Creating model %c %d %d\n", model, model, int(gmmap.size()));
-    //CPLEX_CREATE
+    switch (type) {
+        case 'C':
+            (CPLEX_EXIST ? CPLEX_CREATE : (GLPK_EXIST ? GLPK_CREATE : throw "Neither Cplex nor Glpk (deafault fallback solver) are available"));
+            break;
+        case 'G':
+            (GUROBI_EXIST ? GUROBI_CREATE : (GLPK_EXIST ? GLPK_CREATE : throw "Neither Gurobi nor Glpk (deafault fallback solver) are available"));
+            break;
+        case 'H':
+            (HG_EXIST ? HG_CREATE : (GLPK_EXIST ? GLPK_CREATE : throw "Neither Hypergraph nor Glpk (deafault fallback solver) are available"));
+            break;
+        case 'K':
+            (GLPK_EXIST ? GLPK_CREATE : throw "Glpk (deafault fallback solver) is not available");
+            break;
+        case 'S':
+            (SCIP_EXIST ? SCIP_CREATE : (GLPK_EXIST ? GLPK_CREATE : throw "Neither Scip nor Glpk (deafault fallback solver) are available"));
+            break;
+        case 'O':
+            (COIN_EXIST ? COIN_CREATE : (GLPK_EXIST ? GLPK_CREATE : throw "Neither Coin nor Glpk (deafault fallback solver) are available"));
+            break;
+        default:
+            throw string("Unknown solver");
+            return 1;
+    }
+	if(gmmap.size() == ret)
+        return 1;
+	gmmap[ret]->name = "DefaultGenModel";
+    if(name != NULL)
+        gmmap[ret]->name = string(name);
+    
     return ret;
+}
+
+bool IsSolverAvailable(char type)
+{
+    switch (type) {
+        case 'C':
+            return CPLEX_EXIST;
+            break;
+        case 'G':
+            return GUROBI_EXIST;
+            break;
+        case 'H':
+            return HG_EXIST;
+            break;
+        case 'K':
+            return GLPK_EXIST;
+            break;
+        case 'S':
+            return SCIP_EXIST;
+            break;
+        case 'O':
+            return COIN_EXIST;
+            break;
+        default:
+            return false;
+    }
+	return false;
 }
 
 long CopyOrder(long token, int count, int* ind, int* weight)
 {
+    VerifyId(token);
 #ifdef CPLEX_SOLVER
 	CplexData* d = static_cast<CplexData*>(gmmap[token]->solverdata);
 	CPXcopyorder(d->env, d->lp, count, ind, weight, NULL);
 #else
-	throw new exception();
+	throw "Not implemented for your solver";
 #endif
 	return 0;
 }
 
 long DeleteModel(long token)
 {
+    VerifyId(token);
 	delete gmmap[token];
 	return 0;
 }
 
 long CreateModel(long token)
 {
+    VerifyId(token);
 	gmmap[token]->SetNumbers();
-	gmmap[token]->Init("GenModel");
+	gmmap[token]->Init(gmmap[token]->name);
 	gmmap[token]->CreateModel();
 	return 0;
 }
 
 long SolveModel(long token)
 {
+    VerifyId(token);
 	gmmap[token]->Solve();
 	gmmap[token]->SetSol();
     /*for(int i = 0; i < gmmap[token]->nc; i++)
@@ -200,6 +291,7 @@ long SolveModel(long token)
 
 bool GetSolVars(double* values, long length, long token)
 {
+    VerifyId(token);
     //printf("\tC++: Adress GetSolVars use is %p size = %d / %ld\n", values, length, gmmap[token]->nc);
 	if (length != gmmap[token]->nc)
 	{
@@ -217,12 +309,14 @@ bool GetSolVars(double* values, long length, long token)
 
 bool HasSolution(long token)
 {
+    VerifyId(token);
 	//printf("before return %d\n", gmmap[token]->hassolution);
 	return gmmap[token]->hassolution;
 }
 
 bool GetDualPrices(double* values, long length, long token)
 {
+    VerifyId(token);
     //printf("\tC++: Adress GetDualPrices use is %p size = %ld\n", values, length, gmmap[token]->nr);
 	if (length != gmmap[token]->nr)
 	{
@@ -240,6 +334,7 @@ bool GetDualPrices(double* values, long length, long token)
 
 bool GetReducedCosts(double* values, long length, long token)
 {
+    VerifyId(token);
 	if (length != gmmap[token]->nc)
 	{
 		return false;
@@ -255,6 +350,7 @@ bool GetReducedCosts(double* values, long length, long token)
 
 bool GetRowValues(double* values, long length, long rowIndex, long token)
 {
+    VerifyId(token);
 	if (length != gmmap[token]->nc || rowIndex >= gmmap[token]->nr)
 	{
 		return false;
@@ -269,6 +365,7 @@ bool GetRowValues(double* values, long length, long rowIndex, long token)
 
 bool GetObjCoef(double* values, long length, long token)
 {
+    VerifyId(token);
 	if (length != gmmap[token]->nc)
 	{
 		return false;
@@ -284,6 +381,7 @@ bool GetObjCoef(double* values, long length, long token)
 
 bool GetBounds(double* lb, double* ub, long length, long token)
 {
+    VerifyId(token);
 	if (length != gmmap[token]->nc)
 	{
 		return false;
@@ -298,50 +396,95 @@ bool GetBounds(double* lb, double* ub, long length, long token)
 	return true;
 }
 
+double GetLowerBound(long col, long token)
+{
+    VerifyId(token);
+	if (col != gmmap[token]->nc || col < 0)
+        return (numeric_limits<double>::has_signaling_NaN ? numeric_limits<double>::signaling_NaN() : numeric_limits<double>::quiet_NaN());
+
+	return gmmap[token]->vars.lb[col];
+}
+
+double GetUpperBound(long col, long token)
+{
+    VerifyId(token);
+	if (col != gmmap[token]->nc || col < 0)
+        return (numeric_limits<double>::has_signaling_NaN ? numeric_limits<double>::signaling_NaN() : numeric_limits<double>::quiet_NaN());
+    
+	return gmmap[token]->vars.ub[col];
+}
+
+bool SetLowerBound(long col, double val, long token)
+{
+    VerifyId(token);
+	if (col != gmmap[token]->nc || col < 0)
+        return false;
+    gmmap[token]->vars.lb[col] = val;
+	return true;
+}
+
+bool SetUpperBound(long col, double val, long token)
+{
+    VerifyId(token);
+	if (col != gmmap[token]->nc || col < 0)
+    return false;
+    gmmap[token]->vars.ub[col] = val;
+	return true;
+}
+
 double GetRHS(long row, long token)
 {
+    VerifyId(token);
 	return gmmap[token]->consts[row].lrhs;
 }
 
 bool SetRHS(long row, double val, long token)
 {
+    VerifyId(token);
 	gmmap[token]->consts[row].lrhs = val;
 	return true;
 }
 
 char GetSense(long row, long token)
 {
+    VerifyId(token);
 	return gmmap[token]->consts[row].sense;
 }
 
 bool SetSense(long row, char sense, long token)
 {
+    VerifyId(token);
 	gmmap[token]->consts[row].sense = sense;
 	return true;
 }
 
 double GetObjVal(long token)
 {
+    VerifyId(token);
 	return gmmap[token]->objval;
 }
 
 long ChangeBulkBounds(int count, int* indices, char* types, double* values, long token)
 {
+    VerifyId(token);
 	return gmmap[token]->ChangeBulkBounds(count, indices, types, values);
 }
 
 long ChangeBulkObjectives(int count, int* indices, double* values, long token)
 {
+    VerifyId(token);
 	return gmmap[token]->ChangeBulkObjectives(count, indices, values);
 }
 
 long DeleteMipStarts(long token)
 {
+    VerifyId(token);
 	return gmmap[token]->DeleteMipStarts();
 }
 
 double GetMIPRelativeGap(long token)
 {
+    VerifyId(token);
 	return gmmap[token]->GetMIPRelativeGap();
 }
 

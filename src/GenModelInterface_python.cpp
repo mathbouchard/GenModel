@@ -2932,6 +2932,9 @@ SWIG_Python_NonDynamicSetAttr(PyObject *obj, PyObject *name, PyObject *value) {
 
 
 
+  #define SWIG_exception(code, msg) do { SWIG_Error(code, msg); SWIG_fail;; } while(0) 
+
+
 /* -------- TYPES TABLE (BEGIN) -------- */
 
 #define SWIGTYPE_p_InterfaceVectorT_double_t swig_types[0]
@@ -3041,8 +3044,11 @@ namespace swig {
 
 /* Put header files here or function declarations like below */
     #include "GenModelInterface.h"
-    
+    double FindConstraintMaxLhs(long row, long token);
+    double FindConstraintMinLhs(long row, long token);
+    long MakeConstraintFeasible(long row, long token);
     long WriteProblemToLpFile(char* filename, long token);
+    long WriteSolutionToFile(char* filename, long token);
     long AddConst(char* cname, double rhs, char sense, long token);
     bool AddConstBulk(char* cname, double* rhs, long length, char sense, long token);
     long AddVar(char* nn, double o, double l, double u, char t, long token);
@@ -3056,7 +3062,8 @@ namespace swig {
     long SetDblParam(char* param, double val, long token);
     long SetBoolParam(char* param, bool val, long token);
     long SetStrParam(char* param, char* val, long token);
-    long CreateNewModel(char model);
+    long CreateNewModel(char type, char* name = NULL);
+    bool IsSolverAvailable(char type);
     long CopyOrder(long token, int count, int* ind, int* weight);
     long DeleteModel(long token);
     long CreateModel(long token);
@@ -3068,6 +3075,10 @@ namespace swig {
     bool GetRowValues(double* values, long length, long rowIndex, long token);
     bool GetObjCoef(double* values, long length, long token);
     bool GetBounds(double* lb, double* ub, long length, long token);
+    double GetLowerBound(long col, long token);
+    double GetUpperBound(long col, long token);
+    bool SetLowerBound(long col, double val, long token);
+    bool SetUpperBound(long col, double val, long token);
     double GetRHS(long row, long token);
     bool SetRHS(long row, double val, long token);
     char GetSense(long row, long token);
@@ -3425,7 +3436,17 @@ SWIGINTERN PyObject *_wrap_new_IntVector__SWIG_0(PyObject *SWIGUNUSEDPARM(self),
   InterfaceVector< int > *result = 0 ;
   
   if (!PyArg_ParseTuple(args,(char *)":new_IntVector")) SWIG_fail;
-  result = (InterfaceVector< int > *)new InterfaceVector< int >();
+  {
+    try {
+      result = (InterfaceVector< int > *)new InterfaceVector< int >(); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_InterfaceVectorT_int_t, SWIG_POINTER_NEW |  0 );
   return resultobj;
 fail:
@@ -3447,7 +3468,17 @@ SWIGINTERN PyObject *_wrap_new_IntVector__SWIG_1(PyObject *SWIGUNUSEDPARM(self),
     SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "new_IntVector" "', argument " "1"" of type '" "int""'");
   } 
   arg1 = static_cast< int >(val1);
-  result = (InterfaceVector< int > *)new InterfaceVector< int >(arg1);
+  {
+    try {
+      result = (InterfaceVector< int > *)new InterfaceVector< int >(arg1); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_InterfaceVectorT_int_t, SWIG_POINTER_NEW |  0 );
   return resultobj;
 fail:
@@ -3501,7 +3532,17 @@ SWIGINTERN PyObject *_wrap_delete_IntVector(PyObject *SWIGUNUSEDPARM(self), PyOb
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "delete_IntVector" "', argument " "1"" of type '" "InterfaceVector< int > *""'"); 
   }
   arg1 = reinterpret_cast< InterfaceVector< int > * >(argp1);
-  delete arg1;
+  {
+    try {
+      delete arg1; 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   resultobj = SWIG_Py_Void();
   return resultobj;
 fail:
@@ -3531,7 +3572,17 @@ SWIGINTERN PyObject *_wrap_IntVector_SetSize(PyObject *SWIGUNUSEDPARM(self), PyO
     SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "IntVector_SetSize" "', argument " "2"" of type '" "int""'");
   } 
   arg2 = static_cast< int >(val2);
-  (arg1)->SetSize(arg2);
+  {
+    try {
+      (arg1)->SetSize(arg2); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   resultobj = SWIG_Py_Void();
   return resultobj;
 fail:
@@ -3552,7 +3603,17 @@ SWIGINTERN PyObject *_wrap_IntVector_Delete(PyObject *SWIGUNUSEDPARM(self), PyOb
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "IntVector_Delete" "', argument " "1"" of type '" "InterfaceVector< int > *""'"); 
   }
   arg1 = reinterpret_cast< InterfaceVector< int > * >(argp1);
-  (arg1)->Delete();
+  {
+    try {
+      (arg1)->Delete(); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   resultobj = SWIG_Py_Void();
   return resultobj;
 fail:
@@ -3591,7 +3652,17 @@ SWIGINTERN PyObject *_wrap_IntVector_Set(PyObject *SWIGUNUSEDPARM(self), PyObjec
     SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "IntVector_Set" "', argument " "3"" of type '" "int""'");
   } 
   arg3 = static_cast< int >(val3);
-  (arg1)->Set(arg2,arg3);
+  {
+    try {
+      (arg1)->Set(arg2,arg3); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   resultobj = SWIG_Py_Void();
   return resultobj;
 fail:
@@ -3622,7 +3693,17 @@ SWIGINTERN PyObject *_wrap_IntVector_Get(PyObject *SWIGUNUSEDPARM(self), PyObjec
     SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "IntVector_Get" "', argument " "2"" of type '" "int""'");
   } 
   arg2 = static_cast< int >(val2);
-  result = (int)(arg1)->Get(arg2);
+  {
+    try {
+      result = (int)(arg1)->Get(arg2); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   resultobj = SWIG_From_int(static_cast< int >(result));
   return resultobj;
 fail:
@@ -3644,7 +3725,17 @@ SWIGINTERN PyObject *_wrap_IntVector_Ptr(PyObject *SWIGUNUSEDPARM(self), PyObjec
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "IntVector_Ptr" "', argument " "1"" of type '" "InterfaceVector< int > *""'"); 
   }
   arg1 = reinterpret_cast< InterfaceVector< int > * >(argp1);
-  result = (int *)(arg1)->Ptr();
+  {
+    try {
+      result = (int *)(arg1)->Ptr(); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_int, 0 |  0 );
   return resultobj;
 fail:
@@ -3664,7 +3755,17 @@ SWIGINTERN PyObject *_wrap_new_LongVector__SWIG_0(PyObject *SWIGUNUSEDPARM(self)
   InterfaceVector< long > *result = 0 ;
   
   if (!PyArg_ParseTuple(args,(char *)":new_LongVector")) SWIG_fail;
-  result = (InterfaceVector< long > *)new InterfaceVector< long >();
+  {
+    try {
+      result = (InterfaceVector< long > *)new InterfaceVector< long >(); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_InterfaceVectorT_long_t, SWIG_POINTER_NEW |  0 );
   return resultobj;
 fail:
@@ -3686,7 +3787,17 @@ SWIGINTERN PyObject *_wrap_new_LongVector__SWIG_1(PyObject *SWIGUNUSEDPARM(self)
     SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "new_LongVector" "', argument " "1"" of type '" "int""'");
   } 
   arg1 = static_cast< int >(val1);
-  result = (InterfaceVector< long > *)new InterfaceVector< long >(arg1);
+  {
+    try {
+      result = (InterfaceVector< long > *)new InterfaceVector< long >(arg1); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_InterfaceVectorT_long_t, SWIG_POINTER_NEW |  0 );
   return resultobj;
 fail:
@@ -3740,7 +3851,17 @@ SWIGINTERN PyObject *_wrap_delete_LongVector(PyObject *SWIGUNUSEDPARM(self), PyO
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "delete_LongVector" "', argument " "1"" of type '" "InterfaceVector< long > *""'"); 
   }
   arg1 = reinterpret_cast< InterfaceVector< long > * >(argp1);
-  delete arg1;
+  {
+    try {
+      delete arg1; 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   resultobj = SWIG_Py_Void();
   return resultobj;
 fail:
@@ -3770,7 +3891,17 @@ SWIGINTERN PyObject *_wrap_LongVector_SetSize(PyObject *SWIGUNUSEDPARM(self), Py
     SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "LongVector_SetSize" "', argument " "2"" of type '" "int""'");
   } 
   arg2 = static_cast< int >(val2);
-  (arg1)->SetSize(arg2);
+  {
+    try {
+      (arg1)->SetSize(arg2); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   resultobj = SWIG_Py_Void();
   return resultobj;
 fail:
@@ -3791,7 +3922,17 @@ SWIGINTERN PyObject *_wrap_LongVector_Delete(PyObject *SWIGUNUSEDPARM(self), PyO
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "LongVector_Delete" "', argument " "1"" of type '" "InterfaceVector< long > *""'"); 
   }
   arg1 = reinterpret_cast< InterfaceVector< long > * >(argp1);
-  (arg1)->Delete();
+  {
+    try {
+      (arg1)->Delete(); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   resultobj = SWIG_Py_Void();
   return resultobj;
 fail:
@@ -3830,7 +3971,17 @@ SWIGINTERN PyObject *_wrap_LongVector_Set(PyObject *SWIGUNUSEDPARM(self), PyObje
     SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "LongVector_Set" "', argument " "3"" of type '" "long""'");
   } 
   arg3 = static_cast< long >(val3);
-  (arg1)->Set(arg2,arg3);
+  {
+    try {
+      (arg1)->Set(arg2,arg3); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   resultobj = SWIG_Py_Void();
   return resultobj;
 fail:
@@ -3861,7 +4012,17 @@ SWIGINTERN PyObject *_wrap_LongVector_Get(PyObject *SWIGUNUSEDPARM(self), PyObje
     SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "LongVector_Get" "', argument " "2"" of type '" "int""'");
   } 
   arg2 = static_cast< int >(val2);
-  result = (long)(arg1)->Get(arg2);
+  {
+    try {
+      result = (long)(arg1)->Get(arg2); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   resultobj = SWIG_From_long(static_cast< long >(result));
   return resultobj;
 fail:
@@ -3883,7 +4044,17 @@ SWIGINTERN PyObject *_wrap_LongVector_Ptr(PyObject *SWIGUNUSEDPARM(self), PyObje
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "LongVector_Ptr" "', argument " "1"" of type '" "InterfaceVector< long > *""'"); 
   }
   arg1 = reinterpret_cast< InterfaceVector< long > * >(argp1);
-  result = (long *)(arg1)->Ptr();
+  {
+    try {
+      result = (long *)(arg1)->Ptr(); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_long, 0 |  0 );
   return resultobj;
 fail:
@@ -3903,7 +4074,17 @@ SWIGINTERN PyObject *_wrap_new_DoubleVector__SWIG_0(PyObject *SWIGUNUSEDPARM(sel
   InterfaceVector< double > *result = 0 ;
   
   if (!PyArg_ParseTuple(args,(char *)":new_DoubleVector")) SWIG_fail;
-  result = (InterfaceVector< double > *)new InterfaceVector< double >();
+  {
+    try {
+      result = (InterfaceVector< double > *)new InterfaceVector< double >(); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_InterfaceVectorT_double_t, SWIG_POINTER_NEW |  0 );
   return resultobj;
 fail:
@@ -3925,7 +4106,17 @@ SWIGINTERN PyObject *_wrap_new_DoubleVector__SWIG_1(PyObject *SWIGUNUSEDPARM(sel
     SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "new_DoubleVector" "', argument " "1"" of type '" "int""'");
   } 
   arg1 = static_cast< int >(val1);
-  result = (InterfaceVector< double > *)new InterfaceVector< double >(arg1);
+  {
+    try {
+      result = (InterfaceVector< double > *)new InterfaceVector< double >(arg1); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_InterfaceVectorT_double_t, SWIG_POINTER_NEW |  0 );
   return resultobj;
 fail:
@@ -3979,7 +4170,17 @@ SWIGINTERN PyObject *_wrap_delete_DoubleVector(PyObject *SWIGUNUSEDPARM(self), P
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "delete_DoubleVector" "', argument " "1"" of type '" "InterfaceVector< double > *""'"); 
   }
   arg1 = reinterpret_cast< InterfaceVector< double > * >(argp1);
-  delete arg1;
+  {
+    try {
+      delete arg1; 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   resultobj = SWIG_Py_Void();
   return resultobj;
 fail:
@@ -4009,7 +4210,17 @@ SWIGINTERN PyObject *_wrap_DoubleVector_SetSize(PyObject *SWIGUNUSEDPARM(self), 
     SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "DoubleVector_SetSize" "', argument " "2"" of type '" "int""'");
   } 
   arg2 = static_cast< int >(val2);
-  (arg1)->SetSize(arg2);
+  {
+    try {
+      (arg1)->SetSize(arg2); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   resultobj = SWIG_Py_Void();
   return resultobj;
 fail:
@@ -4030,7 +4241,17 @@ SWIGINTERN PyObject *_wrap_DoubleVector_Delete(PyObject *SWIGUNUSEDPARM(self), P
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "DoubleVector_Delete" "', argument " "1"" of type '" "InterfaceVector< double > *""'"); 
   }
   arg1 = reinterpret_cast< InterfaceVector< double > * >(argp1);
-  (arg1)->Delete();
+  {
+    try {
+      (arg1)->Delete(); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   resultobj = SWIG_Py_Void();
   return resultobj;
 fail:
@@ -4069,7 +4290,17 @@ SWIGINTERN PyObject *_wrap_DoubleVector_Set(PyObject *SWIGUNUSEDPARM(self), PyOb
     SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "DoubleVector_Set" "', argument " "3"" of type '" "double""'");
   } 
   arg3 = static_cast< double >(val3);
-  (arg1)->Set(arg2,arg3);
+  {
+    try {
+      (arg1)->Set(arg2,arg3); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   resultobj = SWIG_Py_Void();
   return resultobj;
 fail:
@@ -4100,7 +4331,17 @@ SWIGINTERN PyObject *_wrap_DoubleVector_Get(PyObject *SWIGUNUSEDPARM(self), PyOb
     SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "DoubleVector_Get" "', argument " "2"" of type '" "int""'");
   } 
   arg2 = static_cast< int >(val2);
-  result = (double)(arg1)->Get(arg2);
+  {
+    try {
+      result = (double)(arg1)->Get(arg2); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   resultobj = SWIG_From_double(static_cast< double >(result));
   return resultobj;
 fail:
@@ -4122,7 +4363,17 @@ SWIGINTERN PyObject *_wrap_DoubleVector_Ptr(PyObject *SWIGUNUSEDPARM(self), PyOb
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "DoubleVector_Ptr" "', argument " "1"" of type '" "InterfaceVector< double > *""'"); 
   }
   arg1 = reinterpret_cast< InterfaceVector< double > * >(argp1);
-  result = (double *)(arg1)->Ptr();
+  {
+    try {
+      result = (double *)(arg1)->Ptr(); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_double, 0 |  0 );
   return resultobj;
 fail:
@@ -4136,6 +4387,129 @@ SWIGINTERN PyObject *DoubleVector_swigregister(PyObject *SWIGUNUSEDPARM(self), P
   SWIG_TypeNewClientData(SWIGTYPE_p_InterfaceVectorT_double_t, SWIG_NewClientData(obj));
   return SWIG_Py_Void();
 }
+
+SWIGINTERN PyObject *_wrap_FindConstraintMaxLhs(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  long arg1 ;
+  long arg2 ;
+  long val1 ;
+  int ecode1 = 0 ;
+  long val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  double result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:FindConstraintMaxLhs",&obj0,&obj1)) SWIG_fail;
+  ecode1 = SWIG_AsVal_long(obj0, &val1);
+  if (!SWIG_IsOK(ecode1)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "FindConstraintMaxLhs" "', argument " "1"" of type '" "long""'");
+  } 
+  arg1 = static_cast< long >(val1);
+  ecode2 = SWIG_AsVal_long(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "FindConstraintMaxLhs" "', argument " "2"" of type '" "long""'");
+  } 
+  arg2 = static_cast< long >(val2);
+  {
+    try {
+      result = (double)FindConstraintMaxLhs(arg1,arg2); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
+  resultobj = SWIG_From_double(static_cast< double >(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_FindConstraintMinLhs(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  long arg1 ;
+  long arg2 ;
+  long val1 ;
+  int ecode1 = 0 ;
+  long val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  double result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:FindConstraintMinLhs",&obj0,&obj1)) SWIG_fail;
+  ecode1 = SWIG_AsVal_long(obj0, &val1);
+  if (!SWIG_IsOK(ecode1)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "FindConstraintMinLhs" "', argument " "1"" of type '" "long""'");
+  } 
+  arg1 = static_cast< long >(val1);
+  ecode2 = SWIG_AsVal_long(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "FindConstraintMinLhs" "', argument " "2"" of type '" "long""'");
+  } 
+  arg2 = static_cast< long >(val2);
+  {
+    try {
+      result = (double)FindConstraintMinLhs(arg1,arg2); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
+  resultobj = SWIG_From_double(static_cast< double >(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_MakeConstraintFeasible(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  long arg1 ;
+  long arg2 ;
+  long val1 ;
+  int ecode1 = 0 ;
+  long val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  long result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:MakeConstraintFeasible",&obj0,&obj1)) SWIG_fail;
+  ecode1 = SWIG_AsVal_long(obj0, &val1);
+  if (!SWIG_IsOK(ecode1)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "MakeConstraintFeasible" "', argument " "1"" of type '" "long""'");
+  } 
+  arg1 = static_cast< long >(val1);
+  ecode2 = SWIG_AsVal_long(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "MakeConstraintFeasible" "', argument " "2"" of type '" "long""'");
+  } 
+  arg2 = static_cast< long >(val2);
+  {
+    try {
+      result = (long)MakeConstraintFeasible(arg1,arg2); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
+  resultobj = SWIG_From_long(static_cast< long >(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
 
 SWIGINTERN PyObject *_wrap_WriteProblemToLpFile(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
@@ -4161,7 +4535,61 @@ SWIGINTERN PyObject *_wrap_WriteProblemToLpFile(PyObject *SWIGUNUSEDPARM(self), 
     SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "WriteProblemToLpFile" "', argument " "2"" of type '" "long""'");
   } 
   arg2 = static_cast< long >(val2);
-  result = (long)WriteProblemToLpFile(arg1,arg2);
+  {
+    try {
+      result = (long)WriteProblemToLpFile(arg1,arg2); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
+  resultobj = SWIG_From_long(static_cast< long >(result));
+  if (alloc1 == SWIG_NEWOBJ) delete[] buf1;
+  return resultobj;
+fail:
+  if (alloc1 == SWIG_NEWOBJ) delete[] buf1;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_WriteSolutionToFile(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  char *arg1 = (char *) 0 ;
+  long arg2 ;
+  int res1 ;
+  char *buf1 = 0 ;
+  int alloc1 = 0 ;
+  long val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  long result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:WriteSolutionToFile",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_AsCharPtrAndSize(obj0, &buf1, NULL, &alloc1);
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "WriteSolutionToFile" "', argument " "1"" of type '" "char *""'");
+  }
+  arg1 = reinterpret_cast< char * >(buf1);
+  ecode2 = SWIG_AsVal_long(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "WriteSolutionToFile" "', argument " "2"" of type '" "long""'");
+  } 
+  arg2 = static_cast< long >(val2);
+  {
+    try {
+      result = (long)WriteSolutionToFile(arg1,arg2); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   resultobj = SWIG_From_long(static_cast< long >(result));
   if (alloc1 == SWIG_NEWOBJ) delete[] buf1;
   return resultobj;
@@ -4213,7 +4641,17 @@ SWIGINTERN PyObject *_wrap_AddConst(PyObject *SWIGUNUSEDPARM(self), PyObject *ar
     SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "AddConst" "', argument " "4"" of type '" "long""'");
   } 
   arg4 = static_cast< long >(val4);
-  result = (long)AddConst(arg1,arg2,arg3,arg4);
+  {
+    try {
+      result = (long)AddConst(arg1,arg2,arg3,arg4); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   resultobj = SWIG_From_long(static_cast< long >(result));
   if (alloc1 == SWIG_NEWOBJ) delete[] buf1;
   return resultobj;
@@ -4274,7 +4712,17 @@ SWIGINTERN PyObject *_wrap_AddConstBulk(PyObject *SWIGUNUSEDPARM(self), PyObject
     SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "AddConstBulk" "', argument " "5"" of type '" "long""'");
   } 
   arg5 = static_cast< long >(val5);
-  result = (bool)AddConstBulk(arg1,arg2,arg3,arg4,arg5);
+  {
+    try {
+      result = (bool)AddConstBulk(arg1,arg2,arg3,arg4,arg5); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   resultobj = SWIG_From_bool(static_cast< bool >(result));
   if (alloc1 == SWIG_NEWOBJ) delete[] buf1;
   return resultobj;
@@ -4344,7 +4792,17 @@ SWIGINTERN PyObject *_wrap_AddVar(PyObject *SWIGUNUSEDPARM(self), PyObject *args
     SWIG_exception_fail(SWIG_ArgError(ecode6), "in method '" "AddVar" "', argument " "6"" of type '" "long""'");
   } 
   arg6 = static_cast< long >(val6);
-  result = (long)AddVar(arg1,arg2,arg3,arg4,arg5,arg6);
+  {
+    try {
+      result = (long)AddVar(arg1,arg2,arg3,arg4,arg5,arg6); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   resultobj = SWIG_From_long(static_cast< long >(result));
   if (alloc1 == SWIG_NEWOBJ) delete[] buf1;
   return resultobj;
@@ -4423,7 +4881,17 @@ SWIGINTERN PyObject *_wrap_AddVarBulk(PyObject *SWIGUNUSEDPARM(self), PyObject *
     SWIG_exception_fail(SWIG_ArgError(ecode7), "in method '" "AddVarBulk" "', argument " "7"" of type '" "long""'");
   } 
   arg7 = static_cast< long >(val7);
-  result = (bool)AddVarBulk(arg1,arg2,arg3,arg4,arg5,arg6,arg7);
+  {
+    try {
+      result = (bool)AddVarBulk(arg1,arg2,arg3,arg4,arg5,arg6,arg7); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   resultobj = SWIG_From_bool(static_cast< bool >(result));
   if (alloc1 == SWIG_NEWOBJ) delete[] buf1;
   return resultobj;
@@ -4474,7 +4942,17 @@ SWIGINTERN PyObject *_wrap_AddNz(PyObject *SWIGUNUSEDPARM(self), PyObject *args)
     SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "AddNz" "', argument " "4"" of type '" "long""'");
   } 
   arg4 = static_cast< long >(val4);
-  result = (long)AddNz(arg1,arg2,arg3,arg4);
+  {
+    try {
+      result = (long)AddNz(arg1,arg2,arg3,arg4); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   resultobj = SWIG_From_long(static_cast< long >(result));
   return resultobj;
 fail:
@@ -4514,7 +4992,17 @@ SWIGINTERN PyObject *_wrap_AddNzToLast(PyObject *SWIGUNUSEDPARM(self), PyObject 
     SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "AddNzToLast" "', argument " "3"" of type '" "long""'");
   } 
   arg3 = static_cast< long >(val3);
-  result = (long)AddNzToLast(arg1,arg2,arg3);
+  {
+    try {
+      result = (long)AddNzToLast(arg1,arg2,arg3); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   resultobj = SWIG_From_long(static_cast< long >(result));
   return resultobj;
 fail:
@@ -4599,7 +5087,17 @@ SWIGINTERN PyObject *_wrap_AddNzBulk(PyObject *SWIGUNUSEDPARM(self), PyObject *a
     SWIG_exception_fail(SWIG_ArgError(ecode8), "in method '" "AddNzBulk" "', argument " "8"" of type '" "long""'");
   } 
   arg8 = static_cast< long >(val8);
-  result = (long)AddNzBulk(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8);
+  {
+    try {
+      result = (long)AddNzBulk(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   resultobj = SWIG_From_long(static_cast< long >(result));
   return resultobj;
 fail:
@@ -4648,7 +5146,17 @@ SWIGINTERN PyObject *_wrap_SetQpCoef(PyObject *SWIGUNUSEDPARM(self), PyObject *a
     SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "SetQpCoef" "', argument " "4"" of type '" "long""'");
   } 
   arg4 = static_cast< long >(val4);
-  result = (long)SetQpCoef(arg1,arg2,arg3,arg4);
+  {
+    try {
+      result = (long)SetQpCoef(arg1,arg2,arg3,arg4); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   resultobj = SWIG_From_long(static_cast< long >(result));
   return resultobj;
 fail:
@@ -4670,7 +5178,17 @@ SWIGINTERN PyObject *_wrap_SetNumbers(PyObject *SWIGUNUSEDPARM(self), PyObject *
     SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "SetNumbers" "', argument " "1"" of type '" "long""'");
   } 
   arg1 = static_cast< long >(val1);
-  result = (long)SetNumbers(arg1);
+  {
+    try {
+      result = (long)SetNumbers(arg1); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   resultobj = SWIG_From_long(static_cast< long >(result));
   return resultobj;
 fail:
@@ -4711,7 +5229,17 @@ SWIGINTERN PyObject *_wrap_SetLongParam(PyObject *SWIGUNUSEDPARM(self), PyObject
     SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "SetLongParam" "', argument " "3"" of type '" "long""'");
   } 
   arg3 = static_cast< long >(val3);
-  result = (long)SetLongParam(arg1,arg2,arg3);
+  {
+    try {
+      result = (long)SetLongParam(arg1,arg2,arg3); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   resultobj = SWIG_From_long(static_cast< long >(result));
   if (alloc1 == SWIG_NEWOBJ) delete[] buf1;
   return resultobj;
@@ -4754,7 +5282,17 @@ SWIGINTERN PyObject *_wrap_SetDblParam(PyObject *SWIGUNUSEDPARM(self), PyObject 
     SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "SetDblParam" "', argument " "3"" of type '" "long""'");
   } 
   arg3 = static_cast< long >(val3);
-  result = (long)SetDblParam(arg1,arg2,arg3);
+  {
+    try {
+      result = (long)SetDblParam(arg1,arg2,arg3); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   resultobj = SWIG_From_long(static_cast< long >(result));
   if (alloc1 == SWIG_NEWOBJ) delete[] buf1;
   return resultobj;
@@ -4797,7 +5335,17 @@ SWIGINTERN PyObject *_wrap_SetBoolParam(PyObject *SWIGUNUSEDPARM(self), PyObject
     SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "SetBoolParam" "', argument " "3"" of type '" "long""'");
   } 
   arg3 = static_cast< long >(val3);
-  result = (long)SetBoolParam(arg1,arg2,arg3);
+  {
+    try {
+      result = (long)SetBoolParam(arg1,arg2,arg3); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   resultobj = SWIG_From_long(static_cast< long >(result));
   if (alloc1 == SWIG_NEWOBJ) delete[] buf1;
   return resultobj;
@@ -4841,7 +5389,17 @@ SWIGINTERN PyObject *_wrap_SetStrParam(PyObject *SWIGUNUSEDPARM(self), PyObject 
     SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "SetStrParam" "', argument " "3"" of type '" "long""'");
   } 
   arg3 = static_cast< long >(val3);
-  result = (long)SetStrParam(arg1,arg2,arg3);
+  {
+    try {
+      result = (long)SetStrParam(arg1,arg2,arg3); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   resultobj = SWIG_From_long(static_cast< long >(result));
   if (alloc1 == SWIG_NEWOBJ) delete[] buf1;
   if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
@@ -4853,7 +5411,51 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_CreateNewModel(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_CreateNewModel__SWIG_0(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  char arg1 ;
+  char *arg2 = (char *) 0 ;
+  char val1 ;
+  int ecode1 = 0 ;
+  int res2 ;
+  char *buf2 = 0 ;
+  int alloc2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  long result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:CreateNewModel",&obj0,&obj1)) SWIG_fail;
+  ecode1 = SWIG_AsVal_char(obj0, &val1);
+  if (!SWIG_IsOK(ecode1)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "CreateNewModel" "', argument " "1"" of type '" "char""'");
+  } 
+  arg1 = static_cast< char >(val1);
+  res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, NULL, &alloc2);
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "CreateNewModel" "', argument " "2"" of type '" "char *""'");
+  }
+  arg2 = reinterpret_cast< char * >(buf2);
+  {
+    try {
+      result = (long)CreateNewModel(arg1,arg2); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
+  resultobj = SWIG_From_long(static_cast< long >(result));
+  if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  return resultobj;
+fail:
+  if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_CreateNewModel__SWIG_1(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   char arg1 ;
   char val1 ;
@@ -4867,8 +5469,94 @@ SWIGINTERN PyObject *_wrap_CreateNewModel(PyObject *SWIGUNUSEDPARM(self), PyObje
     SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "CreateNewModel" "', argument " "1"" of type '" "char""'");
   } 
   arg1 = static_cast< char >(val1);
-  result = (long)CreateNewModel(arg1);
+  {
+    try {
+      result = (long)CreateNewModel(arg1); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   resultobj = SWIG_From_long(static_cast< long >(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_CreateNewModel(PyObject *self, PyObject *args) {
+  int argc;
+  PyObject *argv[3];
+  int ii;
+  
+  if (!PyTuple_Check(args)) SWIG_fail;
+  argc = args ? (int)PyObject_Length(args) : 0;
+  for (ii = 0; (ii < 2) && (ii < argc); ii++) {
+    argv[ii] = PyTuple_GET_ITEM(args,ii);
+  }
+  if (argc == 1) {
+    int _v;
+    {
+      int res = SWIG_AsVal_char(argv[0], NULL);
+      _v = SWIG_CheckState(res);
+    }
+    if (_v) {
+      return _wrap_CreateNewModel__SWIG_1(self, args);
+    }
+  }
+  if (argc == 2) {
+    int _v;
+    {
+      int res = SWIG_AsVal_char(argv[0], NULL);
+      _v = SWIG_CheckState(res);
+    }
+    if (_v) {
+      int res = SWIG_AsCharPtrAndSize(argv[1], 0, NULL, 0);
+      _v = SWIG_CheckState(res);
+      if (_v) {
+        return _wrap_CreateNewModel__SWIG_0(self, args);
+      }
+    }
+  }
+  
+fail:
+  SWIG_SetErrorMsg(PyExc_NotImplementedError,"Wrong number or type of arguments for overloaded function 'CreateNewModel'.\n"
+    "  Possible C/C++ prototypes are:\n"
+    "    CreateNewModel(char,char *)\n"
+    "    CreateNewModel(char)\n");
+  return 0;
+}
+
+
+SWIGINTERN PyObject *_wrap_IsSolverAvailable(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  char arg1 ;
+  char val1 ;
+  int ecode1 = 0 ;
+  PyObject * obj0 = 0 ;
+  bool result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:IsSolverAvailable",&obj0)) SWIG_fail;
+  ecode1 = SWIG_AsVal_char(obj0, &val1);
+  if (!SWIG_IsOK(ecode1)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "IsSolverAvailable" "', argument " "1"" of type '" "char""'");
+  } 
+  arg1 = static_cast< char >(val1);
+  {
+    try {
+      result = (bool)IsSolverAvailable(arg1); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
+  resultobj = SWIG_From_bool(static_cast< bool >(result));
   return resultobj;
 fail:
   return NULL;
@@ -4916,7 +5604,17 @@ SWIGINTERN PyObject *_wrap_CopyOrder(PyObject *SWIGUNUSEDPARM(self), PyObject *a
     SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "CopyOrder" "', argument " "4"" of type '" "int *""'"); 
   }
   arg4 = reinterpret_cast< int * >(argp4);
-  result = (long)CopyOrder(arg1,arg2,arg3,arg4);
+  {
+    try {
+      result = (long)CopyOrder(arg1,arg2,arg3,arg4); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   resultobj = SWIG_From_long(static_cast< long >(result));
   return resultobj;
 fail:
@@ -4938,7 +5636,17 @@ SWIGINTERN PyObject *_wrap_DeleteModel(PyObject *SWIGUNUSEDPARM(self), PyObject 
     SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "DeleteModel" "', argument " "1"" of type '" "long""'");
   } 
   arg1 = static_cast< long >(val1);
-  result = (long)DeleteModel(arg1);
+  {
+    try {
+      result = (long)DeleteModel(arg1); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   resultobj = SWIG_From_long(static_cast< long >(result));
   return resultobj;
 fail:
@@ -4960,7 +5668,17 @@ SWIGINTERN PyObject *_wrap_CreateModel(PyObject *SWIGUNUSEDPARM(self), PyObject 
     SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "CreateModel" "', argument " "1"" of type '" "long""'");
   } 
   arg1 = static_cast< long >(val1);
-  result = (long)CreateModel(arg1);
+  {
+    try {
+      result = (long)CreateModel(arg1); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   resultobj = SWIG_From_long(static_cast< long >(result));
   return resultobj;
 fail:
@@ -4982,7 +5700,17 @@ SWIGINTERN PyObject *_wrap_SolveModel(PyObject *SWIGUNUSEDPARM(self), PyObject *
     SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "SolveModel" "', argument " "1"" of type '" "long""'");
   } 
   arg1 = static_cast< long >(val1);
-  result = (long)SolveModel(arg1);
+  {
+    try {
+      result = (long)SolveModel(arg1); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   resultobj = SWIG_From_long(static_cast< long >(result));
   return resultobj;
 fail:
@@ -5022,7 +5750,17 @@ SWIGINTERN PyObject *_wrap_GetSolVars(PyObject *SWIGUNUSEDPARM(self), PyObject *
     SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "GetSolVars" "', argument " "3"" of type '" "long""'");
   } 
   arg3 = static_cast< long >(val3);
-  result = (bool)GetSolVars(arg1,arg2,arg3);
+  {
+    try {
+      result = (bool)GetSolVars(arg1,arg2,arg3); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   resultobj = SWIG_From_bool(static_cast< bool >(result));
   return resultobj;
 fail:
@@ -5044,7 +5782,17 @@ SWIGINTERN PyObject *_wrap_HasSolution(PyObject *SWIGUNUSEDPARM(self), PyObject 
     SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "HasSolution" "', argument " "1"" of type '" "long""'");
   } 
   arg1 = static_cast< long >(val1);
-  result = (bool)HasSolution(arg1);
+  {
+    try {
+      result = (bool)HasSolution(arg1); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   resultobj = SWIG_From_bool(static_cast< bool >(result));
   return resultobj;
 fail:
@@ -5084,7 +5832,17 @@ SWIGINTERN PyObject *_wrap_GetDualPrices(PyObject *SWIGUNUSEDPARM(self), PyObjec
     SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "GetDualPrices" "', argument " "3"" of type '" "long""'");
   } 
   arg3 = static_cast< long >(val3);
-  result = (bool)GetDualPrices(arg1,arg2,arg3);
+  {
+    try {
+      result = (bool)GetDualPrices(arg1,arg2,arg3); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   resultobj = SWIG_From_bool(static_cast< bool >(result));
   return resultobj;
 fail:
@@ -5124,7 +5882,17 @@ SWIGINTERN PyObject *_wrap_GetReducedCosts(PyObject *SWIGUNUSEDPARM(self), PyObj
     SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "GetReducedCosts" "', argument " "3"" of type '" "long""'");
   } 
   arg3 = static_cast< long >(val3);
-  result = (bool)GetReducedCosts(arg1,arg2,arg3);
+  {
+    try {
+      result = (bool)GetReducedCosts(arg1,arg2,arg3); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   resultobj = SWIG_From_bool(static_cast< bool >(result));
   return resultobj;
 fail:
@@ -5173,7 +5941,17 @@ SWIGINTERN PyObject *_wrap_GetRowValues(PyObject *SWIGUNUSEDPARM(self), PyObject
     SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "GetRowValues" "', argument " "4"" of type '" "long""'");
   } 
   arg4 = static_cast< long >(val4);
-  result = (bool)GetRowValues(arg1,arg2,arg3,arg4);
+  {
+    try {
+      result = (bool)GetRowValues(arg1,arg2,arg3,arg4); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   resultobj = SWIG_From_bool(static_cast< bool >(result));
   return resultobj;
 fail:
@@ -5213,7 +5991,17 @@ SWIGINTERN PyObject *_wrap_GetObjCoef(PyObject *SWIGUNUSEDPARM(self), PyObject *
     SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "GetObjCoef" "', argument " "3"" of type '" "long""'");
   } 
   arg3 = static_cast< long >(val3);
-  result = (bool)GetObjCoef(arg1,arg2,arg3);
+  {
+    try {
+      result = (bool)GetObjCoef(arg1,arg2,arg3); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   resultobj = SWIG_From_bool(static_cast< bool >(result));
   return resultobj;
 fail:
@@ -5262,7 +6050,199 @@ SWIGINTERN PyObject *_wrap_GetBounds(PyObject *SWIGUNUSEDPARM(self), PyObject *a
     SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "GetBounds" "', argument " "4"" of type '" "long""'");
   } 
   arg4 = static_cast< long >(val4);
-  result = (bool)GetBounds(arg1,arg2,arg3,arg4);
+  {
+    try {
+      result = (bool)GetBounds(arg1,arg2,arg3,arg4); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
+  resultobj = SWIG_From_bool(static_cast< bool >(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_GetLowerBound(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  long arg1 ;
+  long arg2 ;
+  long val1 ;
+  int ecode1 = 0 ;
+  long val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  double result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:GetLowerBound",&obj0,&obj1)) SWIG_fail;
+  ecode1 = SWIG_AsVal_long(obj0, &val1);
+  if (!SWIG_IsOK(ecode1)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "GetLowerBound" "', argument " "1"" of type '" "long""'");
+  } 
+  arg1 = static_cast< long >(val1);
+  ecode2 = SWIG_AsVal_long(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "GetLowerBound" "', argument " "2"" of type '" "long""'");
+  } 
+  arg2 = static_cast< long >(val2);
+  {
+    try {
+      result = (double)GetLowerBound(arg1,arg2); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
+  resultobj = SWIG_From_double(static_cast< double >(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_GetUpperBound(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  long arg1 ;
+  long arg2 ;
+  long val1 ;
+  int ecode1 = 0 ;
+  long val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  double result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:GetUpperBound",&obj0,&obj1)) SWIG_fail;
+  ecode1 = SWIG_AsVal_long(obj0, &val1);
+  if (!SWIG_IsOK(ecode1)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "GetUpperBound" "', argument " "1"" of type '" "long""'");
+  } 
+  arg1 = static_cast< long >(val1);
+  ecode2 = SWIG_AsVal_long(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "GetUpperBound" "', argument " "2"" of type '" "long""'");
+  } 
+  arg2 = static_cast< long >(val2);
+  {
+    try {
+      result = (double)GetUpperBound(arg1,arg2); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
+  resultobj = SWIG_From_double(static_cast< double >(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_SetLowerBound(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  long arg1 ;
+  double arg2 ;
+  long arg3 ;
+  long val1 ;
+  int ecode1 = 0 ;
+  double val2 ;
+  int ecode2 = 0 ;
+  long val3 ;
+  int ecode3 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  PyObject * obj2 = 0 ;
+  bool result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OOO:SetLowerBound",&obj0,&obj1,&obj2)) SWIG_fail;
+  ecode1 = SWIG_AsVal_long(obj0, &val1);
+  if (!SWIG_IsOK(ecode1)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "SetLowerBound" "', argument " "1"" of type '" "long""'");
+  } 
+  arg1 = static_cast< long >(val1);
+  ecode2 = SWIG_AsVal_double(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "SetLowerBound" "', argument " "2"" of type '" "double""'");
+  } 
+  arg2 = static_cast< double >(val2);
+  ecode3 = SWIG_AsVal_long(obj2, &val3);
+  if (!SWIG_IsOK(ecode3)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "SetLowerBound" "', argument " "3"" of type '" "long""'");
+  } 
+  arg3 = static_cast< long >(val3);
+  {
+    try {
+      result = (bool)SetLowerBound(arg1,arg2,arg3); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
+  resultobj = SWIG_From_bool(static_cast< bool >(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_SetUpperBound(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  long arg1 ;
+  double arg2 ;
+  long arg3 ;
+  long val1 ;
+  int ecode1 = 0 ;
+  double val2 ;
+  int ecode2 = 0 ;
+  long val3 ;
+  int ecode3 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  PyObject * obj2 = 0 ;
+  bool result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OOO:SetUpperBound",&obj0,&obj1,&obj2)) SWIG_fail;
+  ecode1 = SWIG_AsVal_long(obj0, &val1);
+  if (!SWIG_IsOK(ecode1)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "SetUpperBound" "', argument " "1"" of type '" "long""'");
+  } 
+  arg1 = static_cast< long >(val1);
+  ecode2 = SWIG_AsVal_double(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "SetUpperBound" "', argument " "2"" of type '" "double""'");
+  } 
+  arg2 = static_cast< double >(val2);
+  ecode3 = SWIG_AsVal_long(obj2, &val3);
+  if (!SWIG_IsOK(ecode3)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "SetUpperBound" "', argument " "3"" of type '" "long""'");
+  } 
+  arg3 = static_cast< long >(val3);
+  {
+    try {
+      result = (bool)SetUpperBound(arg1,arg2,arg3); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   resultobj = SWIG_From_bool(static_cast< bool >(result));
   return resultobj;
 fail:
@@ -5293,7 +6273,17 @@ SWIGINTERN PyObject *_wrap_GetRHS(PyObject *SWIGUNUSEDPARM(self), PyObject *args
     SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "GetRHS" "', argument " "2"" of type '" "long""'");
   } 
   arg2 = static_cast< long >(val2);
-  result = (double)GetRHS(arg1,arg2);
+  {
+    try {
+      result = (double)GetRHS(arg1,arg2); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   resultobj = SWIG_From_double(static_cast< double >(result));
   return resultobj;
 fail:
@@ -5333,7 +6323,17 @@ SWIGINTERN PyObject *_wrap_SetRHS(PyObject *SWIGUNUSEDPARM(self), PyObject *args
     SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "SetRHS" "', argument " "3"" of type '" "long""'");
   } 
   arg3 = static_cast< long >(val3);
-  result = (bool)SetRHS(arg1,arg2,arg3);
+  {
+    try {
+      result = (bool)SetRHS(arg1,arg2,arg3); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   resultobj = SWIG_From_bool(static_cast< bool >(result));
   return resultobj;
 fail:
@@ -5364,7 +6364,17 @@ SWIGINTERN PyObject *_wrap_GetSense(PyObject *SWIGUNUSEDPARM(self), PyObject *ar
     SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "GetSense" "', argument " "2"" of type '" "long""'");
   } 
   arg2 = static_cast< long >(val2);
-  result = (char)GetSense(arg1,arg2);
+  {
+    try {
+      result = (char)GetSense(arg1,arg2); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   resultobj = SWIG_From_char(static_cast< char >(result));
   return resultobj;
 fail:
@@ -5404,7 +6414,17 @@ SWIGINTERN PyObject *_wrap_SetSense(PyObject *SWIGUNUSEDPARM(self), PyObject *ar
     SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "SetSense" "', argument " "3"" of type '" "long""'");
   } 
   arg3 = static_cast< long >(val3);
-  result = (bool)SetSense(arg1,arg2,arg3);
+  {
+    try {
+      result = (bool)SetSense(arg1,arg2,arg3); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   resultobj = SWIG_From_bool(static_cast< bool >(result));
   return resultobj;
 fail:
@@ -5426,7 +6446,17 @@ SWIGINTERN PyObject *_wrap_GetObjVal(PyObject *SWIGUNUSEDPARM(self), PyObject *a
     SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "GetObjVal" "', argument " "1"" of type '" "long""'");
   } 
   arg1 = static_cast< long >(val1);
-  result = (double)GetObjVal(arg1);
+  {
+    try {
+      result = (double)GetObjVal(arg1); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   resultobj = SWIG_From_double(static_cast< double >(result));
   return resultobj;
 fail:
@@ -5485,7 +6515,17 @@ SWIGINTERN PyObject *_wrap_ChangeBulkBounds(PyObject *SWIGUNUSEDPARM(self), PyOb
     SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "ChangeBulkBounds" "', argument " "5"" of type '" "long""'");
   } 
   arg5 = static_cast< long >(val5);
-  result = (long)ChangeBulkBounds(arg1,arg2,arg3,arg4,arg5);
+  {
+    try {
+      result = (long)ChangeBulkBounds(arg1,arg2,arg3,arg4,arg5); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   resultobj = SWIG_From_long(static_cast< long >(result));
   if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
   return resultobj;
@@ -5536,7 +6576,17 @@ SWIGINTERN PyObject *_wrap_ChangeBulkObjectives(PyObject *SWIGUNUSEDPARM(self), 
     SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "ChangeBulkObjectives" "', argument " "4"" of type '" "long""'");
   } 
   arg4 = static_cast< long >(val4);
-  result = (long)ChangeBulkObjectives(arg1,arg2,arg3,arg4);
+  {
+    try {
+      result = (long)ChangeBulkObjectives(arg1,arg2,arg3,arg4); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   resultobj = SWIG_From_long(static_cast< long >(result));
   return resultobj;
 fail:
@@ -5558,7 +6608,17 @@ SWIGINTERN PyObject *_wrap_DeleteMipStarts(PyObject *SWIGUNUSEDPARM(self), PyObj
     SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "DeleteMipStarts" "', argument " "1"" of type '" "long""'");
   } 
   arg1 = static_cast< long >(val1);
-  result = (long)DeleteMipStarts(arg1);
+  {
+    try {
+      result = (long)DeleteMipStarts(arg1); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   resultobj = SWIG_From_long(static_cast< long >(result));
   return resultobj;
 fail:
@@ -5580,7 +6640,17 @@ SWIGINTERN PyObject *_wrap_GetMIPRelativeGap(PyObject *SWIGUNUSEDPARM(self), PyO
     SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "GetMIPRelativeGap" "', argument " "1"" of type '" "long""'");
   } 
   arg1 = static_cast< long >(val1);
-  result = (double)GetMIPRelativeGap(arg1);
+  {
+    try {
+      result = (double)GetMIPRelativeGap(arg1); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
   resultobj = SWIG_From_double(static_cast< double >(result));
   return resultobj;
 fail:
@@ -5614,7 +6684,11 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"DoubleVector_Get", _wrap_DoubleVector_Get, METH_VARARGS, NULL},
 	 { (char *)"DoubleVector_Ptr", _wrap_DoubleVector_Ptr, METH_VARARGS, NULL},
 	 { (char *)"DoubleVector_swigregister", DoubleVector_swigregister, METH_VARARGS, NULL},
+	 { (char *)"FindConstraintMaxLhs", _wrap_FindConstraintMaxLhs, METH_VARARGS, NULL},
+	 { (char *)"FindConstraintMinLhs", _wrap_FindConstraintMinLhs, METH_VARARGS, NULL},
+	 { (char *)"MakeConstraintFeasible", _wrap_MakeConstraintFeasible, METH_VARARGS, NULL},
 	 { (char *)"WriteProblemToLpFile", _wrap_WriteProblemToLpFile, METH_VARARGS, NULL},
+	 { (char *)"WriteSolutionToFile", _wrap_WriteSolutionToFile, METH_VARARGS, NULL},
 	 { (char *)"AddConst", _wrap_AddConst, METH_VARARGS, NULL},
 	 { (char *)"AddConstBulk", _wrap_AddConstBulk, METH_VARARGS, NULL},
 	 { (char *)"AddVar", _wrap_AddVar, METH_VARARGS, NULL},
@@ -5629,6 +6703,7 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"SetBoolParam", _wrap_SetBoolParam, METH_VARARGS, NULL},
 	 { (char *)"SetStrParam", _wrap_SetStrParam, METH_VARARGS, NULL},
 	 { (char *)"CreateNewModel", _wrap_CreateNewModel, METH_VARARGS, NULL},
+	 { (char *)"IsSolverAvailable", _wrap_IsSolverAvailable, METH_VARARGS, NULL},
 	 { (char *)"CopyOrder", _wrap_CopyOrder, METH_VARARGS, NULL},
 	 { (char *)"DeleteModel", _wrap_DeleteModel, METH_VARARGS, NULL},
 	 { (char *)"CreateModel", _wrap_CreateModel, METH_VARARGS, NULL},
@@ -5640,6 +6715,10 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"GetRowValues", _wrap_GetRowValues, METH_VARARGS, NULL},
 	 { (char *)"GetObjCoef", _wrap_GetObjCoef, METH_VARARGS, NULL},
 	 { (char *)"GetBounds", _wrap_GetBounds, METH_VARARGS, NULL},
+	 { (char *)"GetLowerBound", _wrap_GetLowerBound, METH_VARARGS, NULL},
+	 { (char *)"GetUpperBound", _wrap_GetUpperBound, METH_VARARGS, NULL},
+	 { (char *)"SetLowerBound", _wrap_SetLowerBound, METH_VARARGS, NULL},
+	 { (char *)"SetUpperBound", _wrap_SetUpperBound, METH_VARARGS, NULL},
 	 { (char *)"GetRHS", _wrap_GetRHS, METH_VARARGS, NULL},
 	 { (char *)"SetRHS", _wrap_SetRHS, METH_VARARGS, NULL},
 	 { (char *)"GetSense", _wrap_GetSense, METH_VARARGS, NULL},

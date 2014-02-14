@@ -1,7 +1,7 @@
 Gem::Specification.new do |s|
   s.name        = 'genmodel'
-  s.version     = '0.0.2'
-  s.date        = '2014-01-28'
+  s.version     = '0.0.5'
+  s.date        = '2014-02-12'
   s.summary     = "GenModel Gem"
   s.description = "A generic tool to solve optimization model with different solvers"
   s.authors     = ["Mathieu Bouchard"]

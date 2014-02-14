@@ -130,9 +130,25 @@ DoubleVector_swigregister = _genmodel.DoubleVector_swigregister
 DoubleVector_swigregister(DoubleVector)
 
 
+def FindConstraintMaxLhs(*args):
+  return _genmodel.FindConstraintMaxLhs(*args)
+FindConstraintMaxLhs = _genmodel.FindConstraintMaxLhs
+
+def FindConstraintMinLhs(*args):
+  return _genmodel.FindConstraintMinLhs(*args)
+FindConstraintMinLhs = _genmodel.FindConstraintMinLhs
+
+def MakeConstraintFeasible(*args):
+  return _genmodel.MakeConstraintFeasible(*args)
+MakeConstraintFeasible = _genmodel.MakeConstraintFeasible
+
 def WriteProblemToLpFile(*args):
   return _genmodel.WriteProblemToLpFile(*args)
 WriteProblemToLpFile = _genmodel.WriteProblemToLpFile
+
+def WriteSolutionToFile(*args):
+  return _genmodel.WriteSolutionToFile(*args)
+WriteSolutionToFile = _genmodel.WriteSolutionToFile
 
 def AddConst(*args):
   return _genmodel.AddConst(*args)
@@ -190,6 +206,10 @@ def CreateNewModel(*args):
   return _genmodel.CreateNewModel(*args)
 CreateNewModel = _genmodel.CreateNewModel
 
+def IsSolverAvailable(*args):
+  return _genmodel.IsSolverAvailable(*args)
+IsSolverAvailable = _genmodel.IsSolverAvailable
+
 def CopyOrder(*args):
   return _genmodel.CopyOrder(*args)
 CopyOrder = _genmodel.CopyOrder
@@ -233,6 +253,22 @@ GetObjCoef = _genmodel.GetObjCoef
 def GetBounds(*args):
   return _genmodel.GetBounds(*args)
 GetBounds = _genmodel.GetBounds
+
+def GetLowerBound(*args):
+  return _genmodel.GetLowerBound(*args)
+GetLowerBound = _genmodel.GetLowerBound
+
+def GetUpperBound(*args):
+  return _genmodel.GetUpperBound(*args)
+GetUpperBound = _genmodel.GetUpperBound
+
+def SetLowerBound(*args):
+  return _genmodel.SetLowerBound(*args)
+SetLowerBound = _genmodel.SetLowerBound
+
+def SetUpperBound(*args):
+  return _genmodel.SetUpperBound(*args)
+SetUpperBound = _genmodel.SetUpperBound
 
 def GetRHS(*args):
   return _genmodel.GetRHS(*args)
