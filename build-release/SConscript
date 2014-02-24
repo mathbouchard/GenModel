@@ -4,6 +4,7 @@ from collections import OrderedDict
 from subprocess import call
 
 import os
+import copy
 
 is_debug = False;
 suffix = ""
@@ -57,7 +58,8 @@ cpppath = {
               r"/Users/mbouchard/.rvm/rubies/ruby-1.9.3-p392/include/ruby-1.9.1/x86_64-darwin13.0.2",
               r"/System/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7",
 	      r"/Users/mbouchard/source/scipoptsuite-3.0.2/scip-3.0.2/src/",
-          r"/usr/local/Cellar/cbc/2.8.6/include/coin/"]
+          r"/usr/local/Cellar/cbc/2.8.6/include/coin/",
+          r"/usr/local/Cellar/cgl/0.58.3/include/coin/"]
     }
         
 libpath = {
@@ -69,8 +71,9 @@ libpath = {
               r"/Library/gurobi560/mac64/lib",
               os.environ['HOME']+"/.rvm/rubies/ruby-1.9.3-p392/lib",
               r"/System/Library/Frameworks/Python.framework/Versions/2.7/lib/",
-	      r"/Users/mbouchard/source/scipoptsuite-3.0.2/scip-3.0.2/lib/",
-          r"/usr/local/Cellar/cbc/2.8.6/lib/"]
+	      r"/Users/mbouchard/source/scipoptsuite-3.0.2/scip-3.0.2/lib/"]#,
+          #r"/usr/local/Cellar/cbc/2.8.6/lib/",
+          #r"/usr/local/Cellar/cgl/0.58.3/lib/"]
     }
 
 cppdefines = []
@@ -81,14 +84,14 @@ elif (system() == "Linux"):
 elif (system() == "Darwin"):
    cppdefines.append("Darwin")
 
-libs = []
+libs = ["ruby","python"]
 
 # Validate that the libs are present
 moduleLibs = {
     "Cplex": {
         "Linux": ["cplex126","ruby","python"],
         "Windows": ["cplex126","ruby","python"],
-        "Darwin": ["cplex","ruby","python"]
+        "Darwin": ["cplex"]
         },
     "Gurobi": {
         "Linux": ["gurobi_c++", "gurobi51"],
@@ -106,19 +109,21 @@ moduleLibs = {
         "Darwin": ["glpk"]
         },
     "Scip": {
-        "Linux": ["scip"],
-        "Windows": ["scip"],
-        "Darwin": ["scip"]
+        "Linux": ["scip", "objscip", "libsoplex.darwin.x86_64.gnu.opt.a", "z", "lpispx", "nlpi.cppad", "zimpl.darwin.x86_64.gnu.opt", "readline", "gmp"],
+        "Windows": ["scip", "objscip", "libsoplex.darwin.x86_64.gnu.opt.a", "z", "lpispx", "nlpi.cppad", "zimpl.darwin.x86_64.gnu.opt", "readline", "gmp"],
+        "Darwin": ["scip", "objscip", "libsoplex.darwin.x86_64.gnu.opt.a", "z", "lpispx", "nlpi.cppad", "zimpl.darwin.x86_64.gnu.opt", "readline", "gmp"]
         },
-    "Coin": {
-        "Linux": ["Clp", "CoinUtils"],
-        "Windows": ["Clp", "CoinUtils"],
-        "Darwin": ["Clp", "CoinUtils"]
+    "Osi": {
+        "Linux": ["Clp", "Osi", "OsiClp", "CoinUtils"],
+        "Windows": ["Clp", "Osi", "OsiClp", "CoinUtils"],
+        "Darwin": ["Clp", "Cgl", "Cbc", "Osi", "OsiClp", "CoinUtils"]
         }
     }
-
+########################################################################################
 missingModules = []
-excludedModules = ["Scip","Gurobi","HyperGraph"]
+#excludedModules = ["Gurobi","HyperGraph","Glpk","Osi","Scip"]
+excludedModules = ["HyperGraph","Glpk","Osi","Scip","Cplex"]
+#excludedModules = ["Gurobi"]
 
 for module in moduleLibs:
     allModulePresents = True
@@ -145,7 +150,7 @@ libs = list(OrderedDict.fromkeys(libs))
 cxxflags = {
     "Linux": "-g -O2 -m64 -Wall -pthread -fmessage-length=0 -std=c++11",
     "Windows": "/O2 /MD /EHsc",
-    "Darwin": "-g -O2 -m64 -Wall -pthread -fmessage-length=0 -std=c++11",
+    "Darwin": "-g -O2 -m64 -Wall -pthread -fmessage-length=0",
     }
     
 # Create an environmnet
@@ -154,7 +159,8 @@ env = Environment(TARGET_ARCH = "x86_64",
     LIBPATH = libpath[system()],
     LIBS = libs,
     CXXFLAGS = cxxflags[system()],
-    CPPDEFINES = cppdefines
+    CPPDEFINES = cppdefines,
+    CXX = "g++-4.6"
     )
 
 # Change the build folder output
@@ -192,19 +198,32 @@ for file in matches:
     print("Removing "+str(file))
     files.remove(file)
     
+matches = [file for file in files if "Test.cpp" in str(file)]
+for file in matches:
+    print("Removing "+str(file))
+    files.remove(file)
+    
 # Build the library
 
 print("building library...")
 env.SharedLibrary(target = "../lib/" + target, source = files)
 print("done")
-print("building octave interface")
-octargs = buildoctaveargs(cpppath, libpath, libs, cxxflags, cppdefines)
-call(octargs)
-call(["gem", "build", "genmodel.gemspec"])
-call(["mv", "genmodel-0.0.5.gem", "../lib/genmodel-0.0.5.gem"])
+#print("building octave interface")
+#octargs = buildoctaveargs(cpppath, libpath, libs, cxxflags, cppdefines)
+#call(octargs)
+#print("done")
 
+print("building test program")
+env["LIBPATH"].append("../lib")
+test_libs_list = list(env["LIBS"])
+test_libs_list.append("genmodel")
+env.Program(target = "../bin/test", source = "Test.cpp", LIBS=test_libs_list)
 print("done")
 
+print("building gem file")
+call(["gem", "build", "genmodel.gemspec"])
+call(["mv", "genmodelgrb-0.0.7.gem", "../lib/genmodelgrb-0.0.7.gem"])
+print("done")
 
 if (missingModules):
     print("***************************************************************************")
