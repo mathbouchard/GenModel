@@ -1,6 +1,3 @@
-// Copyright (C) 2004, International Business Machines
-// Corporation and others.  All Rights Reserved.
-
 #include <cassert>
 
 #include "CoinHelperFunctions.hpp"
@@ -9,129 +6,138 @@
 #include "ClpLinearObjective.hpp"
 #include "ClpObjective.hpp"
 //#include "ClpSimplex.hpp"
-#include "ClpQuadInterface.hpp"
-//#############################################################################
-// Solve methods
-//#############################################################################
-void ClpQuadInterface::initialSolve()
+#include "GenModelOsiInterface.h"
+
+long GenModelOsiInterface::setQuadraticObjective(long nc, CoinBigIndex* Q_beg, int* Q_r, double* Q_v)
 {
-  // save cutoff
-  double cutoff = modelPtr_->dualObjectiveLimit();
-  modelPtr_->setDualObjectiveLimit(1.0e50);
-  modelPtr_->scaling(0);
-  modelPtr_->setLogLevel(0);
-  // solve with no objective to get feasible solution
-  setBasis(basis_,modelPtr_);
-  modelPtr_->dual();
-  basis_ = getBasis(modelPtr_);
-  modelPtr_->setDualObjectiveLimit(cutoff);
-  if (modelPtr_->problemStatus()) {
-    assert (modelPtr_->problemStatus()==1);
-    return;
-  }
-  ClpObjective * saveObjective  = modelPtr_->objectiveAsObject();
-  modelPtr_->setObjectivePointer(quadraticObjective_);
-  //modelPtr_->setLogLevel(1);
-  // Could load up any data into a solver
-  modelPtr_->primal();
-  modelPtr_->setDualObjectiveLimit(cutoff);
-  if (modelPtr_->objectiveValue()>cutoff)
-    modelPtr_->setProblemStatus(1);
-  // zero reduced costs
-  // Should not have to as convex
-  //CoinZeroN(modelPtr_->dualRowSolution(),modelPtr_->numberRows());
-  //CoinZeroN(modelPtr_->dualColumnSolution(),modelPtr_->numberColumns());
-  modelPtr_->setObjectivePointer(saveObjective);
+    double offset;
+    double csol[2];
+    csol[0] = 2.2;
+    csol[1] = 0.7;
+    
+    printf("Set Quadratic\n");
+    //ClpObjective * saveObjective  = modelPtr_->objectiveAsObject();
+    //modelPtr_->loadQuadraticObjective(nc, Q_beg, Q_r, Q_v);
+    
+    //double* gradz = modelPtr_->objective(csol, offset, true);
+    //for(int i = 0; i < nc; i++)
+    //    printf("gradz = %f (%d)\n", gradz[i], Q_beg[i]);
+    
+    if(quadraticObjective_ != NULL)
+       delete quadraticObjective_;
+
+    quadraticObjective_ = new ClpQuadraticObjective(modelPtr_->objective(),nc,Q_beg,Q_r,Q_v);
+    double* buf = modelPtr_->objective();
+    for(int i = 0; i < nc; i++)
+        printf("obj = %f\n", buf[i]);
+    
+    double* grad = ((ClpQuadraticObjective*)quadraticObjective_)->gradient(modelPtr_, csol, offset, true);
+    for(int i = 0; i < nc; i++)
+        printf("grad = %f\n", grad[i]);
+    
+    ClpLinearObjective * linearObjective = new ClpLinearObjective(NULL,nc);
+    modelPtr_->setObjectivePointer(linearObjective);
+    
+    return 0;
 }
 
-//-----------------------------------------------------------------------------
-void ClpQuadInterface::resolve()
+void GenModelOsiInterface::initialSolve()
 {
-  initialSolve();
+    // save cutoff
+    double cutoff = modelPtr_->dualObjectiveLimit();
+    modelPtr_->setDualObjectiveLimit(1.0e50);
+    modelPtr_->scaling(0);
+    //modelPtr_->setLogLevel(0);
+    // solve with no objective to get feasible solution
+    setBasis(basis_,modelPtr_);
+    printf("before dual\n");
+    modelPtr_->dual();
+    printf("after dual\n");
+    basis_ = getBasis(modelPtr_);
+    modelPtr_->setDualObjectiveLimit(cutoff);
+    if (modelPtr_->problemStatus())
+    {
+        assert (modelPtr_->problemStatus()==1);
+        return;
+    }
+    ClpObjective * saveObjective  = modelPtr_->objectiveAsObject();
+    modelPtr_->setObjectivePointer(quadraticObjective_);
+    //modelPtr_->setLogLevel(1);
+    // Could load up any data into a solver
+    printf("before primal\n");
+    modelPtr_->primal();
+    printf("after primal\n");
+    modelPtr_->setDualObjectiveLimit(cutoff);
+    if (modelPtr_->objectiveValue()>cutoff)
+        modelPtr_->setProblemStatus(1);
+    // zero reduced costs
+    // Should not have to as convex
+    //CoinZeroN(modelPtr_->dualRowSolution(),modelPtr_->numberRows());
+    //CoinZeroN(modelPtr_->dualColumnSolution(),modelPtr_->numberColumns());
+    modelPtr_->setObjectivePointer(saveObjective);
 }
 
-//#############################################################################
-// Constructors, destructors clone and assignment
-//#############################################################################
-
-//-------------------------------------------------------------------
-// Default Constructor 
-//-------------------------------------------------------------------
-ClpQuadInterface::ClpQuadInterface ()
-  : OsiClpSolverInterface()
+void GenModelOsiInterface::resolve()
 {
-  quadraticObjective_=NULL;
-}
-
-//-------------------------------------------------------------------
-// Clone
-//-------------------------------------------------------------------
-OsiSolverInterface * 
-ClpQuadInterface::clone(bool CopyData) const
-{
-  if (CopyData) {
-    return new ClpQuadInterface(*this);
-  } else {
-    printf("warning ClpQuadInterface clone with copyData false\n");
-    return new ClpQuadInterface();
-  }
+    initialSolve();
 }
 
 
-//-------------------------------------------------------------------
-// Copy constructor 
-//-------------------------------------------------------------------
-ClpQuadInterface::ClpQuadInterface (
-                  const ClpQuadInterface & rhs)
-  : OsiClpSolverInterface(rhs)
+GenModelOsiInterface::GenModelOsiInterface () : OsiClpSolverInterface()
 {
-  if (rhs.quadraticObjective_)
-    quadraticObjective_=rhs.quadraticObjective_->clone();
-  else
-    quadraticObjective_=NULL;
+    quadraticObjective_ = NULL;
 }
 
-//-------------------------------------------------------------------
-// Destructor 
-//-------------------------------------------------------------------
-ClpQuadInterface::~ClpQuadInterface ()
-{
-  delete quadraticObjective_;
-}
 
-//-------------------------------------------------------------------
-// Assignment operator 
-//-------------------------------------------------------------------
-ClpQuadInterface &
-ClpQuadInterface::operator=(const ClpQuadInterface& rhs)
+OsiSolverInterface* GenModelOsiInterface::clone(bool CopyData) const
 {
-  if (this != &rhs) { 
-    OsiClpSolverInterface::operator=(rhs);
-    if (rhs.quadraticObjective_)
-      quadraticObjective_=rhs.quadraticObjective_->clone();
+    if (CopyData)
+        return new GenModelOsiInterface(*this);
     else
-      quadraticObjective_=NULL;
-  }
-  return *this;
+        throw string("warning GenModelOsiInterface clone with copyData false\n");
 }
-//-------------------------------------------------------------------
+
+
+GenModelOsiInterface::GenModelOsiInterface (const GenModelOsiInterface & rhs) : OsiClpSolverInterface(rhs)
+{
+    if (rhs.quadraticObjective_)
+        quadraticObjective_=rhs.quadraticObjective_->clone();
+    else
+        quadraticObjective_=NULL;
+}
+
+GenModelOsiInterface::~GenModelOsiInterface()
+{
+    delete quadraticObjective_;
+}
+
+GenModelOsiInterface & GenModelOsiInterface::operator=(const GenModelOsiInterface& rhs)
+{
+    if (this != &rhs)
+    {
+        OsiClpSolverInterface::operator=(rhs);
+        if (rhs.quadraticObjective_)
+            quadraticObjective_=rhs.quadraticObjective_->clone();
+        else
+            quadraticObjective_=NULL;
+    }
+    return *this;
+}
+
 // Real initializer
-//-------------------------------------------------------------------
-void
-ClpQuadInterface::initialize ()
+void GenModelOsiInterface::initialize ()
 {
-  // Save true objective and create a fake one
-  delete quadraticObjective_;
-  quadraticObjective_ = modelPtr_->objectiveAsObject();
-  ClpLinearObjective * linearObjective = new ClpLinearObjective(NULL,modelPtr_->numberColumns());
-  modelPtr_->setObjectivePointer(linearObjective);
+    printf("!!!! @@@@@@@@@ Initialize @@@@@@@@@ !!!!!!!\n");
+    // Save true objective and create a fake one
+    delete quadraticObjective_;
+    quadraticObjective_ = modelPtr_->objectiveAsObject();
+    ClpLinearObjective * linearObjective = new ClpLinearObjective(NULL,modelPtr_->numberColumns());
+    modelPtr_->setObjectivePointer(linearObjective);
 }
+
 // Get objective function value (can't use default)
-double 
-ClpQuadInterface::getObjValue() const
+double GenModelOsiInterface::getObjValue() const
 {
-  // first try easy way
-  return modelPtr_->objectiveValue();
+    // first try easy way
+    return modelPtr_->objectiveValue();
 }
-
-

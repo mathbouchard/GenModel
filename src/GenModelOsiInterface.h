@@ -1,72 +1,43 @@
-// Copyright (C) 2004, International Business Machines
-// Corporation and others.  All Rights Reserved.
+/***************************************************************************
+ *  GenModelOsiInterface.h
+ *  Replacememnt for the default OsiClpSolverInterface
+ *
+ *  February 14 9:32 2014
+ *  Copyright  2014  Mathieu Bouchard
+ *  mathbouchard@gmail.com
+ ****************************************************************************/
 
-#ifndef ClpQuadInterface_H
-#define ClpQuadInterface_H
+#ifndef GENMODELOSIINTERFACE_H_
+#define GENMODELOSIINTERFACE_H_
 
 #include "OsiClpSolverInterface.hpp"
+#include <string>
 
-//#############################################################################
+using namespace std;
 
-/**
+// This is to allow the user to replace initialSolve and resolve
 
-    This is to allow the user to replace initialSolve and resolve
-*/
-
-class ClpQuadInterface : public OsiClpSolverInterface {
+class GenModelOsiInterface : public OsiClpSolverInterface {
 
 public:
-  //---------------------------------------------------------------------------
-  /**@name Solve methods */
-  //@{
-    /// Solve initial LP relaxation 
+    
+    GenModelOsiInterface ();
+    GenModelOsiInterface (const GenModelOsiInterface &);
+    virtual ~GenModelOsiInterface ();
+    virtual OsiSolverInterface * clone(bool CopyData=true) const;
+    GenModelOsiInterface & operator=(const GenModelOsiInterface& rhs);
+    
+    // Solve initial LP relaxation
     virtual void initialSolve();
-
     /// Resolve an LP relaxation after problem modification
     virtual void resolve();
-
-  //@}
-
-
-  /**@name Constructors and destructors */
-  //@{
-    /// Default Constructor
-    ClpQuadInterface ();
+    // Setup fake objective or somehow get nonlinear  info
+    void initialize();
+    virtual double getObjValue() const;
+    long setQuadraticObjective(long nc, CoinBigIndex* Q_beg, int* Q_r, double* Q_v);
     
-    /// Clone
-    virtual OsiSolverInterface * clone(bool CopyData=true) const;
-    
-    /// Copy constructor 
-    ClpQuadInterface (const ClpQuadInterface &);
-    
-    /// Assignment operator 
-    ClpQuadInterface & operator=(const ClpQuadInterface& rhs);
-    
-    /// Destructor 
-    virtual ~ClpQuadInterface ();
-
-  //@}
-
-
-  /**@name Sets and Getss */
-  //@{
-  /** Setup fake objective.  It could also read an ampl .nl file
-      or somehow get nonlinear  info */
-  void initialize();
-  /// Get objective function value (can't use default)
-  virtual double getObjValue() const;
-
-  //@}
-
-  //---------------------------------------------------------------------------
-
 private:
-  
-  /**@name Private member data */
-  //@{
-  /// True quadratic objective
-      ClpObjective * quadraticObjective_;
-  //@}
+    ClpObjective * quadraticObjective_;
 };
 
-#endif
+#endif //GENMODELOSIINTERFACE_H_

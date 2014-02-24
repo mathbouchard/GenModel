@@ -1,17 +1,17 @@
 #include "GenModelCplex.h"
-//#include "ProblemReader.h"
+#ifdef OSI_MODULE
+#include "ProblemReaderOsi.h"
+#endif
 #include <limits>
 
-long throwerror(CPXENVptr env, int status, string message)
+string getcplexerror(CPXENVptr env, int status)
 {
-    char  errmsg[1024];
-    snprintf(errmsg, 1024, "CPLEX error %d - ", status);
+    char  errmsg[4096];
+    snprintf(errmsg, 4096, "CPLEX error %d : ", status);
     string prefix = string(errmsg);
     CPXgeterrorstring (env, status, errmsg);
-    throw (prefix+message+string(errmsg));
-    return status;
+    return prefix+string(errmsg);
 }
-
 
 GenModelCplex::~GenModelCplex()
 {
@@ -24,6 +24,9 @@ GenModelCplex::GenModelCplex() {
 
 long GenModelCplex::WriteProblemToLpFile(string filename)
 {
+    if(!bcreated)
+        throw string("WriteProblemToLpFile() not available : Problem not created yet;");
+    
     CplexData* d = static_cast<CplexData*>(solverdata);
     CPXwriteprob(d->env, d->lp, filename.c_str(), "LP");
     return 0;
@@ -106,7 +109,7 @@ long GenModelCplex::SetSol()
     
 	status = CPXsolninfo(d->env, d->lp, &currmeth, &temphassol, &tempfeas, &tempdualfeas);
     if ( status )
-        return throwerror(d->env, status, "Failure to set set solution : ");
+        return ThrowError(getcplexerror(d->env, status)+string(". ")+string("Failure to set set solution (CPXsolninfo)"));
 
 	feasible = static_cast<bool>(tempfeas);
 	dualfeasible = static_cast<bool>(tempdualfeas);
@@ -120,7 +123,7 @@ long GenModelCplex::SetSol()
 	else
 		status = CPXsolution (d->env, d->lp, &solstat, &objval, d->x, d->dual, d->slack, d->rcost);
     if ( status )
-        return throwerror(d->env, status, "Failure to set solution : ");
+        return ThrowError(getcplexerror(d->env, status)+string(". ")+string("Failure to set set solution (CPXsolution)"));
 
 	solstat = tempstat;
 
@@ -135,6 +138,9 @@ long GenModelCplex::SetSol()
 		consts[i].dual = d->dual[i];
 		consts[i].slack = d->slack[i];
 	}
+    
+    if(boolParam.count("print_version") > 0 && boolParam["print_version"])
+        printf("*********** Genmodel version = %s ***********\n", version.c_str());
 
 	return 0;
 }
@@ -142,7 +148,7 @@ long GenModelCplex::SetSol()
 long GenModelCplex::AddSolverRow(vector<int>& ind, vector<double>& val, double rhs, char sense, string name)
 {
     if(!bcreated)
-        throw string("AddSolverRow not available : Problem not created yet");
+        return ThrowError("AddSolverRow() not available : Problem not created yet");
 	AddModelRow(ind, val, rhs, sense, name);
 	AddCut(&ind[0], &val[0], int(ind.size()), rhs, sense, name.c_str());
 
@@ -152,7 +158,7 @@ long GenModelCplex::AddSolverRow(vector<int>& ind, vector<double>& val, double r
 long GenModelCplex::AddCut(int* cols, double* vals, int nz, double rhs, char sense, const char* name)
 {
     if(!bcreated)
-        throw string("AddCut() not available : Problem not created yet");
+        return ThrowError("AddCut() not available : Problem not created yet");
 	CplexData* d = (CplexData*)solverdata;
 	int rmatbeg = 0;
 
@@ -165,7 +171,7 @@ long GenModelCplex::AddCut(int* cols, double* vals, int nz, double rhs, char sen
 long GenModelCplex::AddSolverCol(vector<int>& ind, vector<double>& val, double obj, double lb, double ub, string name, char type)
 {
     if(!bcreated)
-        throw string("AddSolverCol() not available : Problem not created yet");
+        return ThrowError("AddSolverCol() not available : Problem not created yet");
 	AddModelCol(ind, val, obj, lb, ub, name, type);
 	AddCol(&ind[0], &val[0], int(ind.size()), obj, lb, ub, name.c_str(), type);
 
@@ -175,7 +181,7 @@ long GenModelCplex::AddSolverCol(vector<int>& ind, vector<double>& val, double o
 long GenModelCplex::AddCol(int* newi, double* newcol, int nz, double obj, double lb, double ub, const char* name, char type)
 {
     if(!bcreated)
-        throw string("AddCol() not available : Problem not created yet");
+        return ThrowError("AddCol() not available : Problem not created yet");
 	CplexData* d = (CplexData*)solverdata;
 	int cmatbeg = 0;
 
@@ -205,7 +211,7 @@ long GenModelCplex::AddCol(int* newi, double* newcol, int nz, double obj, double
 long GenModelCplex::CreateModel()
 {
     if(!binit)
-        throw string("CreateModel() not available : Problem not initialized yet");
+        return ThrowError("CreateModel() not available : Problem not initialized yet");
 	CplexData* d = (CplexData*)solverdata;
 	int status = 0;
 	d->nc = nc;
@@ -359,7 +365,7 @@ long GenModelCplex::CreateModel()
                 for(int j = 0; j < int(qptemp[i].size()); j++)
                 {
                     qpind[qpnz] = qptemp[i][j].first;
-                    qpv[qpnz] = qptemp[i][j].second;
+                    qpv[qpnz] = 2.0*qptemp[i][j].second;
                     qpnz++;
                 }
             }
@@ -394,18 +400,20 @@ long AddQuadraticMatrix(vector<int>& indi, vector<int>& indj, vector<double>& va
 
 long GenModelCplex::CreateModel(string filename, int type, string dn)
 {
-    //ReadFromFile(static_cast<GenModel*>(this), filename, type);
-	CreateModel();
+#ifdef OSI_MODULE
+    ReadFromFile(static_cast<GenModel*>(this), filename, type);
     SetNumbers();
     CreateModel();
-    
+#else
+    return ThrowError("Cannot use CreateModel(filenamem, type, dn) : Osi Module not present");
+#endif
     return 0;
 }
 
 long GenModelCplex::ChangeBulkBounds(int count, int * ind, char * type, double * vals)
 {
     if(!bcreated)
-        throw string("ChangeBulkBounds not available : Problem not created yet");
+        return ThrowError("ChangeBulkBounds not available : Problem not created yet");
 	CplexData* d = (CplexData*)solverdata;
 
 	for(long i = 0; i < count; i++)
@@ -428,7 +436,7 @@ long GenModelCplex::ChangeBulkBounds(int count, int * ind, char * type, double *
 long GenModelCplex::ChangeBulkObjectives(int count, int * ind, double * vals)
 {
     if(!bcreated)
-        throw string("ChangeBulkObjectives() not available : Problem not created yet");
+        return ThrowError("ChangeBulkObjectives() not available : Problem not created yet");
 	CplexData* d = (CplexData*)solverdata;
 
 	for(long i = 0; i < count; i++)
@@ -444,7 +452,7 @@ long GenModelCplex::ChangeBulkObjectives(int count, int * ind, double * vals)
 long GenModelCplex::ChangeBulkNz(int count, int* rind, int* cind, double * vals)
 {
     if(!bcreated)
-        throw string("ChangeBulkNz() not available : Problem not created yet");
+        return ThrowError("ChangeBulkNz() not available : Problem not created yet");
     CplexData* d = (CplexData*)solverdata;
     
     for(long i = 0; i < count; i++)
@@ -473,7 +481,7 @@ long GenModelCplex::ChangeBulkNz(int count, int* rind, int* cind, double * vals)
 long GenModelCplex::DeleteMipStarts()
 {
     if(!bcreated)
-        throw string("ChangeBulkNz() not available : Problem not created yet");
+        return ThrowError("ChangeBulkNz() not available : Problem not created yet");
 	CplexData* d = (CplexData*)solverdata;
 	int n = CPXgetnummipstarts(d->env, d->lp);
 	if (n > 0)
@@ -485,7 +493,7 @@ long GenModelCplex::DeleteMipStarts()
 double GenModelCplex::GetMIPRelativeGap()
 {
     if(!bcreated)
-        throw string("ChangeBulkNz() not available : Problem not created yet");
+        return ThrowError("ChangeBulkNz() not available : Problem not created yet");
 	CplexData* d = (CplexData*)solverdata;
 	double gap = 0, bestobjval = 0;
 	CPXgetbestobjval(d->env, d->lp, &bestobjval);
@@ -498,7 +506,7 @@ double GenModelCplex::GetMIPRelativeGap()
 long GenModelCplex::SwitchToMip()
 {
     if(!bcreated)
-        throw string("SwitchToMip() not available : Problem not created yet");
+        return ThrowError("SwitchToMip() not available : Problem not created yet");
     vector<int> ind;
     vector<char> type;
     for(int i = 0; i < int(vars.type.size()); i++)
@@ -519,7 +527,7 @@ long GenModelCplex::SwitchToMip()
 long GenModelCplex::SwitchToLp()
 {
     if(!bcreated)
-        throw string("SwitchToLp() not available : Problem not created yet");
+        return ThrowError("SwitchToLp() not available : Problem not created yet");
     vector<int> ind;
     vector<char> type;
     for(int i = 0; i < int(vars.type.size()); i++)
@@ -539,6 +547,25 @@ long GenModelCplex::SwitchToLp()
 
 long GenModelCplex::Init(string name)
 {
+    
+    //strParam.count("log_file")
+    //dblParam.count("relative_mip_gap_tolerance")
+    //dblParam.count("absolute_mip_gap_tolerance")
+    //dblParam.count("time_limit")
+    //dblParam.count("bounds_feasibility_tolerance")
+    //dblParam.count("optimality_tolerance")
+    //dblParam.count("markowitz_tolerance"))
+    //longParam.count("threads")
+    //longParam.count("cutpass")
+    //longParam.count("pumplevel")
+    //longParam.count("mipemphasis")
+	//longParam.count("probinglevel")
+    //longParam.count("max_iteration_limit");
+	//boolParam.count("preprocoff") : turn on/off preprocessing
+	//boolParam.count("datacheckoff")
+    //boolParam.count("screen_output")
+    //boolParam.count("usecutcb")
+    
 	if(solverdata == NULL)
 		solverdata = new CplexData();
 	else
@@ -554,142 +581,126 @@ long GenModelCplex::Init(string name)
 
 	// If an error occurs
 	if ( d->env == NULL )
-        return throwerror(d->env, status, "Could not open CPLEX environment : ");
+        return ThrowError(getcplexerror(d->env, status)+string(". ")+string("Could not open CPLEX environment"));
+    
 	
-
 	hassolution = false;
-
-	// Turn on output to the screen
-	if(boolParam.count("screenoff") > 0 && boolParam["screenoff"])
-		status = CPXsetintparam (d->env, CPX_PARAM_SCRIND, CPX_OFF);
-	else
-		status = CPXsetintparam (d->env, CPX_PARAM_SCRIND, CPX_ON);
-	if ( status )
-        return throwerror(d->env, status, "Failure to turn on screen indicator : ");
     
-    if(strParam.count("logfile") > 0)
+    // Log file
+    if(strParam.count("log_file") > 0)
     {
-        d->cpxfileptr =  CPXfopen(strParam["logfile"].c_str(), "w");
+        d->cpxfileptr =  CPXfopen(strParam["log_file"].c_str(), "w");
         status = CPXsetlogfile(d->env, d->cpxfileptr);
+        if ( status )
+            return ThrowError(getcplexerror(d->env, status)+string(". ")+string("Failure to set the log file"));
     }
-    if ( status )
-        return throwerror(d->env, status, "Failure to set the log file, error : ");
-		
-	// Set the time limit
-	if(dblParam.count("timelimit") > 0)
-		status = CPXsetdblparam (d->env, CPX_PARAM_TILIM, dblParam["timelimit"]);
-
-	// Use cut callback
-	if(boolParam.count("usecutcb") > 0 && boolParam["usecutcb"])
-	{
-		status = CPXsetintparam (d->env, CPX_PARAM_PRELINEAR, 0);
-		status = CPXsetintparam (d->env, CPX_PARAM_MIPCBREDLP, 0);
-	}
-
-	// Cut pass
-	if(longParam.count("cutpass"))
-	{
-		status = CPXsetintparam (d->env, CPX_PARAM_CUTPASS, longParam["cutpass"]);
-	}
-
-	// Pump level
-	if(longParam.count("pumplevel"))
-	{
-		status = CPXsetintparam (d->env, CPX_PARAM_FPHEUR, longParam["pumplevel"]);
-	}
-
-	// MIP Emphasis
-	if(longParam.count("mipemphasis"))
-	{
-		status = CPXsetintparam (d->env, CPX_PARAM_MIPEMPHASIS, longParam["mipemphasis"]);
-	}
-
-	// Probing level
-	if(longParam.count("probinglevel"))
-		status = CPXsetintparam (d->env, CPX_PARAM_PROBE, longParam["probinglevel"]);
-	if ( status )
-        return throwerror(d->env, status, "Failure to set cut probing level parameters : ");
     
-
-	if(dblParam.count("feastol"))
-		status = CPXsetdblparam (d->env, CPX_PARAM_EPRHS, dblParam["feastol"]);
-	if ( status )
-        return throwerror(d->env, status, "Failure to change feasibility tolerance : ");
-		
-	if(dblParam.count("opttol"))
-		status = CPXsetdblparam (d->env, CPX_PARAM_EPOPT, dblParam["opttol"]);
-	if ( status )
-        return throwerror(d->env, status, "Failure to change optimality tolerance : ");
-	if(dblParam.count("marktol"))
-		status = CPXsetdblparam (d->env, CPX_PARAM_EPMRK, dblParam["marktol"]);
-	if ( status )
-        return throwerror(d->env, status, "Failure to change Markowitz tolerance : ");
-	
-	
-	if(longParam.count("threads"))
+    // General settings
+    boolParam["log_output_stdout"] = true;
+    SetParam("log_output_stdout", CPX_PARAM_SCRIND, "bool", "Failure to turn on/off log output to stdout");
+    SetParam("log_level", 0, "long", "Failure to set log level", false);
+    SetParam("use_data_checking", CPX_PARAM_DATACHECK, "bool", "Failure to turn on/off data checking");
+    SetParam("nb_threads", CPX_PARAM_THREADS, "long", "Failure to set the number of threads");
+    if(boolParam.count("use_preprocessor") > 0 && !boolParam["use_preprocessor"])
 	{
-		printf("Threads: %ld", longParam["threads"]);
-		status = CPXsetintparam (d->env, CPX_PARAM_THREADS, longParam["threads"]);
-		if ( status )
-            return throwerror(d->env, status, "Failure to change the number of threads : ");
-	}
-
-	// Turn off preprocessing
-	if(boolParam.count("preprocoff") > 0 && boolParam["preprocoff"])
-	{
-		status = CPXsetintparam (d->env, CPX_PARAM_AGGFILL, 0);
-        if ( status )
-            return throwerror(d->env, status, "Failure to turn off bulk preprocessing options : ");
-		status = CPXsetintparam (d->env, CPX_PARAM_PREPASS, 0);
-        if ( status )
-            return throwerror(d->env, status, "Failure to turn off bulk preprocessing options : ");
-		status = CPXsetintparam (d->env, CPX_PARAM_AGGIND, CPX_OFF);
-        if ( status )
-            return throwerror(d->env, status, "Failure to turn off bulk preprocessing options : ");
-		status = CPXsetintparam (d->env, CPX_PARAM_DEPIND, 0);
-        if ( status )
-            return throwerror(d->env, status, "Failure to turn off bulk preprocessing options : ");
-        status = CPXsetintparam (d->env, CPX_PARAM_PRELINEAR, 0);
-        if ( status )
-            return throwerror(d->env, status, "Failure to turn off bulk preprocessing options : ");
-		status = CPXsetintparam (d->env, CPX_PARAM_PREDUAL, -1);
-        if ( status )
-            return throwerror(d->env, status, "Failure to turn off bulk preprocessing options : ");
-		status = CPXsetintparam (d->env, CPX_PARAM_REDUCE, 0);
-        if ( status )
-            return throwerror(d->env, status, "Failure to turn off bulk preprocessing options : ");
-		status = CPXsetintparam (d->env, CPX_PARAM_PREIND, CPX_OFF);
-        if ( status )
-            return throwerror(d->env, status, "Failure to turn off bulk preprocessing options : ");
+        SetDirectParam(CPX_PARAM_AGGFILL, long2param(0), "long", "Failure to use preprocessor (CPX_PARAM_AGGFILL)");
+        SetDirectParam(CPX_PARAM_PREPASS, long2param(0), "long", "Failure to use preprocessor (CPX_PARAM_PREPASS)");
+        SetDirectParam(CPX_PARAM_AGGIND, long2param(CPX_OFF), "long", "Failure to use preprocessor (CPX_PARAM_AGGIND)");
+        SetDirectParam(CPX_PARAM_DEPIND, long2param(0), "long", "Failure to use preprocessor (CPX_PARAM_DEPIND)");
+        SetDirectParam(CPX_PARAM_PRELINEAR, long2param(0), "long", "Failure to use preprocessor (CPX_PARAM_PRELINEAR)");
+        SetDirectParam(CPX_PARAM_PREDUAL, long2param(-1), "long", "Failure to use preprocessor (CPX_PARAM_PREDUAL)");
+        SetDirectParam(CPX_PARAM_REDUCE, long2param(0), "long", "Failure to use preprocessor (CPX_PARAM_REDUCE)");
+        SetDirectParam(CPX_PARAM_PREIND, long2param(CPX_OFF), "long", "Failure to use preprocessor (CPX_PARAM_PREIND)");
 	}
     
-	// Turn on data checking
-	if(boolParam.count("datacheckoff") > 0 && boolParam["datacheckoff"])
-		status = CPXsetintparam (d->env, CPX_PARAM_DATACHECK, CPX_OFF);
-	else
-		status = CPXsetintparam (d->env, CPX_PARAM_DATACHECK, CPX_ON);
-	if ( status )
-        return throwerror(d->env, status, "Failure to turn on/off data checking : ");
-		
-
-	// Sets a relative tolerance on the gap between the best integer objective and the objective of the best node remaining (between 0.0 and 1.0)
-	if(dblParam.count("epgap"))
-	{
-		//printf("setting epgap\n");
-		status = CPXsetdblparam (d->env, CPX_PARAM_EPGAP, dblParam["epgap"]);
-		if ( status )
-            return throwerror(d->env, status, "Failure to set relative gap tolerance : ");
-	}
-
+    // MIP settings
+    SetParam("nb_cut_pass", CPX_PARAM_CUTPASS, "long", "Failure to set the number of cut pass");
+    SetParam("feasibility_pump_level", CPX_PARAM_FPHEUR, "long", "Failure to set the feasibility pump level");
+    SetParam("probing_level", CPX_PARAM_PROBE, "long", "Failure to set the probing level");
+    SetParam("mip_emphasis", CPX_PARAM_MIPEMPHASIS, "long", "Failure to set the MIP emphasis");
+    if(boolParam.count("use_cut_callback") > 0 && boolParam["use_cut_callback"])
+    {
+        SetDirectParam(CPX_PARAM_PRELINEAR, long2param(0), "long", "Failure to use cut callback (CPX_PARAM_PRELINEAR)");
+        SetDirectParam(CPX_PARAM_MIPCBREDLP, long2param(0), "long", "Failure to use cut callback (CPX_PARAM_MIPCBREDLP)");
+    }
+    
+    // Tolerance and limits
+    SetParam("time_limit", CPX_PARAM_TILIM, "dbl", "Failure to set time limit");
+    SetParam("max_iteration_limit", CPX_PARAM_ITLIM, "long", "Failure to set the maximal number of simplex iterations");
+    SetParam("bounds_feasibility_tolerance", CPX_PARAM_EPRHS, "dbl", "Failure to set bounds feasibility tolerance");
+    SetParam("optimality_tolerance", CPX_PARAM_EPOPT, "dbl", "Failure to set optimality tolerance");
+    SetParam("markowitz_tolerance", CPX_PARAM_EPMRK, "dbl", "Failure to set Markowitz tolerance");
+    SetParam("absolute_mip_gap_tolerance", CPX_PARAM_EPAGAP, "dbl", "Failure to set absolute gap tolerance");
+    SetParam("relative_mip_gap_tolerance", CPX_PARAM_EPGAP, "dbl", "Failure to set relative gap tolerance");
+    if(boolParam.count("maximize") > 0 && boolParam["maximize"])
+        SetParam("lp_objective_limit", CPX_PARAM_OBJULIM, "dbl", "Failure to set lp objective limit");
+    else
+        SetParam("lp_objective_limit", CPX_PARAM_OBJLLIM, "dbl", "Failure to set lp objective limit");
+    
 
 	// Create the problem
 	d->lp = CPXcreateprob (d->env, &status, name.c_str());
 	if ( d->lp == NULL )
-        return throwerror(d->env, status, "Failure to create Cplex optimization problem : ");
+        return ThrowError(getcplexerror(d->env, status)+string(". ")+string("Failure to create Cplex optimization problem"));
 
     binit = true;
     
 	return 0;
+}
+
+long GenModelCplex::SetDirectParam(int whichparam, genmodel_param value, string type, string message)
+{
+    int status = 0;
+    if(type == "dbl")
+        status = CPXsetdblparam (static_cast<CplexData*>(solverdata)->env, whichparam, value.dblval);
+    else if(type == "long")
+        status = CPXsetintparam (static_cast<CplexData*>(solverdata)->env, whichparam, value.longval);
+    else if(type == "str")
+        status = CPXsetstrparam (static_cast<CplexData*>(solverdata)->env, whichparam, value.strval);
+    if ( status )
+        return ThrowError(getcplexerror(static_cast<CplexData*>(solverdata)->env, status)+string(". ")+message);
+    
+    return 0;
+}
+
+long GenModelCplex::SetParam(string param, int whichparam, string type, string message, bool implemented)
+{
+    bool notimplmessage = boolParam.count("throw_on_unimplemeted_option") > 0 && boolParam["throw_on_unimplemeted_option"];
+    
+    if(type == "dbl")
+    {
+        if(dblParam.count(param) > 0 && implemented)
+            SetDirectParam(whichparam, dbl2param(dblParam[param]), type, message);
+        else if(notimplmessage && !implemented && dblParam.count(param) > 0)
+            throw (string("Parameter ")+param+" not implemented in GenModelOsi");
+    }
+    else if(type == "long")
+    {
+        if(longParam.count(param) > 0 && implemented)
+            SetDirectParam(whichparam, long2param(longParam[param]), type, message);
+        else if(notimplmessage && !implemented && longParam.count(param) > 0)
+            throw (string("Parameter ")+param+" not implemented in GenModelOsi");
+    }
+    else if(type == "str")
+    {
+        if(strParam.count(param) > 0 && implemented)
+            SetDirectParam(whichparam, str2param(strParam[param]), type, message);
+        else if(notimplmessage && !implemented && strParam.count(param) > 0)
+            throw (string("Parameter ")+param+" not implemented in GenModelOsi");
+    }
+    else if(type == "bool")
+    {
+        if(boolParam.count(param) > 0 && implemented)
+        {
+            if(boolParam[param])
+                SetDirectParam(whichparam, long2param(CPX_ON), "long", message);
+            else
+                SetDirectParam(whichparam, long2param(CPX_OFF), "long", message);
+        }
+        else if(notimplmessage && !implemented && boolParam.count(param) > 0)
+            throw (string("Parameter ")+param+" not implemented in GenModelOsi");
+    }
+    return 0;
 }
 
 long GenModelCplex::Clean()

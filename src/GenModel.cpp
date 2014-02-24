@@ -3,6 +3,18 @@
 #include <math.h>
 #include <time.h>
 
+GenModel::GenModel()
+{
+    version = "genmodelgrb-0.0.7 build 0001";
+    hassolution = false;
+    bcreated = false;
+    binit = false;
+	nc=0;
+	nr=0;
+	solverdata = NULL;
+}
+
+
 double GenModel::FindConstraintMaxLhs(long row)
 {
     double total = 0.0;
@@ -67,6 +79,12 @@ long GenModel::SetStrParam(string param, string val)
 {
 	strParam[param] = val;
 	return 0;
+}
+
+long GenModel::ThrowError(string error)
+{
+    printf("%s\n", error.c_str());
+    throw error;
 }
 
 long GenModel::PrintObjVal()
@@ -236,25 +254,25 @@ long GenModel::ChangeBulkObjectives(int count, int * ind, double * vals)
 
 long GenModel::WriteProblemToLpFile(string filename)
 {
-    throw "Not implemented";
+    throw string("WriteProblemToLpFile() Not implemented");
 	return 0;
 }
 
 long GenModel::WriteSolutionToFile(string filename)
 {
-    throw "Not implemented";
+    throw string("WriteSolutionToFile() Not implemented");
 	return 0;
 }
 
 long GenModel::DeleteMipStarts()
 {
-    throw "Not implemented";
+    throw string("DeleteMipStarts() Not implemented");
 	return 0;
 }
 
 double GenModel::GetMIPRelativeGap()
 {
-	throw "Not implemented";
+	throw string("DeleteMipStarts() Not implemented");
     return 0.0;
 }
 
@@ -303,16 +321,6 @@ long ModVars::Print()
 	return 0;
 }
 
-GenModel::GenModel()
-{
-    bcreated = false;
-    binit = false;
-	nc=0;
-	nr=0;
-	solverdata = NULL;
-}
-
-
 template <typename T>
 void _freeall(T& t)
 {
@@ -350,4 +358,26 @@ long GenModel::ClearStructure()
     _freeall(vars.qj);
     
     return 0;
+}
+
+
+genmodel_param dbl2param(double val)
+{
+    genmodel_param ret;
+    ret.dblval = val;
+    return ret;
+}
+
+genmodel_param long2param(long val)
+{
+    genmodel_param ret;
+    ret.longval = val;
+    return ret;
+}
+
+genmodel_param str2param(string val)
+{
+    genmodel_param ret;
+    ret.strval = val.c_str();
+    return ret;
 }

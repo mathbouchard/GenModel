@@ -1859,7 +1859,7 @@ static VALUE mGenmodel;
     long SetDblParam(char* param, double val, long token);
     long SetBoolParam(char* param, bool val, long token);
     long SetStrParam(char* param, char* val, long token);
-    long CreateNewModel(char type, char* name = NULL);
+    long CreateNewModel(char type, char* name);
     bool IsSolverAvailable(char type);
     long CopyOrder(long token, int count, int* ind, int* weight);
     long DeleteModel(long token);
@@ -1868,6 +1868,7 @@ static VALUE mGenmodel;
     bool GetSolVars(double* values, long length, long token);
     bool HasSolution(long token);
     bool GetDualPrices(double* values, long length, long token);
+    bool GetSlacks(double* values, long length, long token);
     bool GetReducedCosts(double* values, long length, long token);
     bool GetRowValues(double* values, long length, long rowIndex, long token);
     bool GetObjCoef(double* values, long length, long token);
@@ -4072,7 +4073,7 @@ fail:
 
 
 SWIGINTERN VALUE
-_wrap_CreateNewModel__SWIG_0(int argc, VALUE *argv, VALUE self) {
+_wrap_CreateNewModel(int argc, VALUE *argv, VALUE self) {
   char arg1 ;
   char *arg2 = (char *) 0 ;
   char val1 ;
@@ -4112,84 +4113,6 @@ _wrap_CreateNewModel__SWIG_0(int argc, VALUE *argv, VALUE self) {
   return vresult;
 fail:
   if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
-  return Qnil;
-}
-
-
-SWIGINTERN VALUE
-_wrap_CreateNewModel__SWIG_1(int argc, VALUE *argv, VALUE self) {
-  char arg1 ;
-  char val1 ;
-  int ecode1 = 0 ;
-  long result;
-  VALUE vresult = Qnil;
-  
-  if ((argc < 1) || (argc > 1)) {
-    rb_raise(rb_eArgError, "wrong # of arguments(%d for 1)",argc); SWIG_fail;
-  }
-  ecode1 = SWIG_AsVal_char(argv[0], &val1);
-  if (!SWIG_IsOK(ecode1)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode1), Ruby_Format_TypeError( "", "char","CreateNewModel", 1, argv[0] ));
-  } 
-  arg1 = static_cast< char >(val1);
-  {
-    try {
-      result = (long)CreateNewModel(arg1); 
-    }
-    catch(string str) {
-      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
-    }
-    catch(...) {
-      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
-    }
-  }
-  vresult = SWIG_From_long(static_cast< long >(result));
-  return vresult;
-fail:
-  return Qnil;
-}
-
-
-SWIGINTERN VALUE _wrap_CreateNewModel(int nargs, VALUE *args, VALUE self) {
-  int argc;
-  VALUE argv[2];
-  int ii;
-  
-  argc = nargs;
-  if (argc > 2) SWIG_fail;
-  for (ii = 0; (ii < argc); ++ii) {
-    argv[ii] = args[ii];
-  }
-  if (argc == 1) {
-    int _v;
-    {
-      int res = SWIG_AsVal_char(argv[0], NULL);
-      _v = SWIG_CheckState(res);
-    }
-    if (_v) {
-      return _wrap_CreateNewModel__SWIG_1(nargs, args, self);
-    }
-  }
-  if (argc == 2) {
-    int _v;
-    {
-      int res = SWIG_AsVal_char(argv[0], NULL);
-      _v = SWIG_CheckState(res);
-    }
-    if (_v) {
-      int res = SWIG_AsCharPtrAndSize(argv[1], 0, NULL, 0);
-      _v = SWIG_CheckState(res);
-      if (_v) {
-        return _wrap_CreateNewModel__SWIG_0(nargs, args, self);
-      }
-    }
-  }
-  
-fail:
-  Ruby_Format_OverloadedError( argc, 2, "CreateNewModel", 
-    "    long CreateNewModel(char type, char *name)\n"
-    "    long CreateNewModel(char type)\n");
-  
   return Qnil;
 }
 
@@ -4507,6 +4430,56 @@ _wrap_GetDualPrices(int argc, VALUE *argv, VALUE self) {
   {
     try {
       result = (bool)GetDualPrices(arg1,arg2,arg3); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
+  vresult = SWIG_From_bool(static_cast< bool >(result));
+  return vresult;
+fail:
+  return Qnil;
+}
+
+
+SWIGINTERN VALUE
+_wrap_GetSlacks(int argc, VALUE *argv, VALUE self) {
+  double *arg1 = (double *) 0 ;
+  long arg2 ;
+  long arg3 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  long val2 ;
+  int ecode2 = 0 ;
+  long val3 ;
+  int ecode3 = 0 ;
+  bool result;
+  VALUE vresult = Qnil;
+  
+  if ((argc < 3) || (argc > 3)) {
+    rb_raise(rb_eArgError, "wrong # of arguments(%d for 3)",argc); SWIG_fail;
+  }
+  res1 = SWIG_ConvertPtr(argv[0], &argp1,SWIGTYPE_p_double, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), Ruby_Format_TypeError( "", "double *","GetSlacks", 1, argv[0] )); 
+  }
+  arg1 = reinterpret_cast< double * >(argp1);
+  ecode2 = SWIG_AsVal_long(argv[1], &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), Ruby_Format_TypeError( "", "long","GetSlacks", 2, argv[1] ));
+  } 
+  arg2 = static_cast< long >(val2);
+  ecode3 = SWIG_AsVal_long(argv[2], &val3);
+  if (!SWIG_IsOK(ecode3)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode3), Ruby_Format_TypeError( "", "long","GetSlacks", 3, argv[2] ));
+  } 
+  arg3 = static_cast< long >(val3);
+  {
+    try {
+      result = (bool)GetSlacks(arg1,arg2,arg3); 
     }
     catch(string str) {
       SWIG_exception(SWIG_RuntimeError,str.c_str()); 
@@ -5696,6 +5669,7 @@ SWIGEXPORT void Init_genmodel(void) {
   rb_define_module_function(mGenmodel, "GetSolVars", VALUEFUNC(_wrap_GetSolVars), -1);
   rb_define_module_function(mGenmodel, "HasSolution", VALUEFUNC(_wrap_HasSolution), -1);
   rb_define_module_function(mGenmodel, "GetDualPrices", VALUEFUNC(_wrap_GetDualPrices), -1);
+  rb_define_module_function(mGenmodel, "GetSlacks", VALUEFUNC(_wrap_GetSlacks), -1);
   rb_define_module_function(mGenmodel, "GetReducedCosts", VALUEFUNC(_wrap_GetReducedCosts), -1);
   rb_define_module_function(mGenmodel, "GetRowValues", VALUEFUNC(_wrap_GetRowValues), -1);
   rb_define_module_function(mGenmodel, "GetObjCoef", VALUEFUNC(_wrap_GetObjCoef), -1);

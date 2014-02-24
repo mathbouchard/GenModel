@@ -3062,7 +3062,7 @@ namespace swig {
     long SetDblParam(char* param, double val, long token);
     long SetBoolParam(char* param, bool val, long token);
     long SetStrParam(char* param, char* val, long token);
-    long CreateNewModel(char type, char* name = NULL);
+    long CreateNewModel(char type, char* name);
     bool IsSolverAvailable(char type);
     long CopyOrder(long token, int count, int* ind, int* weight);
     long DeleteModel(long token);
@@ -3071,6 +3071,7 @@ namespace swig {
     bool GetSolVars(double* values, long length, long token);
     bool HasSolution(long token);
     bool GetDualPrices(double* values, long length, long token);
+    bool GetSlacks(double* values, long length, long token);
     bool GetReducedCosts(double* values, long length, long token);
     bool GetRowValues(double* values, long length, long rowIndex, long token);
     bool GetObjCoef(double* values, long length, long token);
@@ -5411,7 +5412,7 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_CreateNewModel__SWIG_0(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_CreateNewModel(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   char arg1 ;
   char *arg2 = (char *) 0 ;
@@ -5452,82 +5453,6 @@ SWIGINTERN PyObject *_wrap_CreateNewModel__SWIG_0(PyObject *SWIGUNUSEDPARM(self)
 fail:
   if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
   return NULL;
-}
-
-
-SWIGINTERN PyObject *_wrap_CreateNewModel__SWIG_1(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
-  PyObject *resultobj = 0;
-  char arg1 ;
-  char val1 ;
-  int ecode1 = 0 ;
-  PyObject * obj0 = 0 ;
-  long result;
-  
-  if (!PyArg_ParseTuple(args,(char *)"O:CreateNewModel",&obj0)) SWIG_fail;
-  ecode1 = SWIG_AsVal_char(obj0, &val1);
-  if (!SWIG_IsOK(ecode1)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "CreateNewModel" "', argument " "1"" of type '" "char""'");
-  } 
-  arg1 = static_cast< char >(val1);
-  {
-    try {
-      result = (long)CreateNewModel(arg1); 
-    }
-    catch(string str) {
-      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
-    }
-    catch(...) {
-      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
-    }
-  }
-  resultobj = SWIG_From_long(static_cast< long >(result));
-  return resultobj;
-fail:
-  return NULL;
-}
-
-
-SWIGINTERN PyObject *_wrap_CreateNewModel(PyObject *self, PyObject *args) {
-  int argc;
-  PyObject *argv[3];
-  int ii;
-  
-  if (!PyTuple_Check(args)) SWIG_fail;
-  argc = args ? (int)PyObject_Length(args) : 0;
-  for (ii = 0; (ii < 2) && (ii < argc); ii++) {
-    argv[ii] = PyTuple_GET_ITEM(args,ii);
-  }
-  if (argc == 1) {
-    int _v;
-    {
-      int res = SWIG_AsVal_char(argv[0], NULL);
-      _v = SWIG_CheckState(res);
-    }
-    if (_v) {
-      return _wrap_CreateNewModel__SWIG_1(self, args);
-    }
-  }
-  if (argc == 2) {
-    int _v;
-    {
-      int res = SWIG_AsVal_char(argv[0], NULL);
-      _v = SWIG_CheckState(res);
-    }
-    if (_v) {
-      int res = SWIG_AsCharPtrAndSize(argv[1], 0, NULL, 0);
-      _v = SWIG_CheckState(res);
-      if (_v) {
-        return _wrap_CreateNewModel__SWIG_0(self, args);
-      }
-    }
-  }
-  
-fail:
-  SWIG_SetErrorMsg(PyExc_NotImplementedError,"Wrong number or type of arguments for overloaded function 'CreateNewModel'.\n"
-    "  Possible C/C++ prototypes are:\n"
-    "    CreateNewModel(char,char *)\n"
-    "    CreateNewModel(char)\n");
-  return 0;
 }
 
 
@@ -5835,6 +5760,56 @@ SWIGINTERN PyObject *_wrap_GetDualPrices(PyObject *SWIGUNUSEDPARM(self), PyObjec
   {
     try {
       result = (bool)GetDualPrices(arg1,arg2,arg3); 
+    }
+    catch(string str) {
+      SWIG_exception(SWIG_RuntimeError,str.c_str()); 
+    }
+    catch(...) {
+      SWIG_exception(SWIG_RuntimeError,"Unknown exception"); 
+    }
+  }
+  resultobj = SWIG_From_bool(static_cast< bool >(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_GetSlacks(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  double *arg1 = (double *) 0 ;
+  long arg2 ;
+  long arg3 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  long val2 ;
+  int ecode2 = 0 ;
+  long val3 ;
+  int ecode3 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  PyObject * obj2 = 0 ;
+  bool result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OOO:GetSlacks",&obj0,&obj1,&obj2)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_double, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GetSlacks" "', argument " "1"" of type '" "double *""'"); 
+  }
+  arg1 = reinterpret_cast< double * >(argp1);
+  ecode2 = SWIG_AsVal_long(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "GetSlacks" "', argument " "2"" of type '" "long""'");
+  } 
+  arg2 = static_cast< long >(val2);
+  ecode3 = SWIG_AsVal_long(obj2, &val3);
+  if (!SWIG_IsOK(ecode3)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "GetSlacks" "', argument " "3"" of type '" "long""'");
+  } 
+  arg3 = static_cast< long >(val3);
+  {
+    try {
+      result = (bool)GetSlacks(arg1,arg2,arg3); 
     }
     catch(string str) {
       SWIG_exception(SWIG_RuntimeError,str.c_str()); 
@@ -6711,6 +6686,7 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"GetSolVars", _wrap_GetSolVars, METH_VARARGS, NULL},
 	 { (char *)"HasSolution", _wrap_HasSolution, METH_VARARGS, NULL},
 	 { (char *)"GetDualPrices", _wrap_GetDualPrices, METH_VARARGS, NULL},
+	 { (char *)"GetSlacks", _wrap_GetSlacks, METH_VARARGS, NULL},
 	 { (char *)"GetReducedCosts", _wrap_GetReducedCosts, METH_VARARGS, NULL},
 	 { (char *)"GetRowValues", _wrap_GetRowValues, METH_VARARGS, NULL},
 	 { (char *)"GetObjCoef", _wrap_GetObjCoef, METH_VARARGS, NULL},

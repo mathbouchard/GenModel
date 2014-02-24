@@ -78,6 +78,8 @@ public:
 	long SetSol();
 	long Clean();
 	double GetMIPRelativeGap();
+    long SetDirectParam(int whichparam, genmodel_param value, string type, string message);
+    long SetParam(string param, int whichparam, string type, string message, bool implemented = true);
 };
 
 #endif // GenModelCplex_H

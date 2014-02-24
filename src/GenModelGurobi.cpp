@@ -91,6 +91,8 @@ long GenModelGurobi::SetSol()
 			consts[-d->equiv[i]-1].slack += row[i].get(GRB_DoubleAttr_Slack);
 		}
 
+        if(boolParam.count("print_version") > 0 && boolParam["print_version"])
+            printf("*********** Genmodel version = %s ***********\n", version.c_str());
 		//if (solstat == GRB_OPTIMAL)
 		//	solstat = 1;
 	}
@@ -115,9 +117,9 @@ long GenModelGurobi::CreateModel()
 	try
 	{
 		if(boolParam.count("maximize") > 0 && boolParam["maximize"])
-			d->model->set(GRB_IntAttr_ModelSense, -1);
+			d->model->set(GRB_IntAttr_ModelSense, -1.0);
 		else
-			d->model->set(GRB_IntAttr_ModelSense, 1);
+			d->model->set(GRB_IntAttr_ModelSense, 1.0);
 
 		d->model->update();
 
@@ -328,17 +330,45 @@ long GenModelGurobi::Init(string name)
 	d->model = new GRBModel(*(d->env));
 	d->model->set(GRB_StringAttr_ModelName, name);
 
-	if(boolParam.count("screenoff") > 0 && boolParam["screenoff"])
-		d->model->getEnv().set(GRB_IntParam_OutputFlag, 0);
+	//if(boolParam.count("log_level") > 0 && boolParam["log_output_stdout"])
+	//	d->model->getEnv().set(GRB_IntParam_OutputFlag, 0);
 
-	if(dblParam.count("timelimit") > 0)
-		d->model->getEnv().set(GRB_DoubleParam_TimeLimit, dblParam["timelimit"]);
+	//if(dblParam.count("time_limit") > 0)
+	//	d->model->getEnv().set(GRB_DoubleParam_TimeLimit, dblParam["time_limit"]);
 
-	if(dblParam.count("opttol"))
-		d->model->getEnv().set(GRB_DoubleParam_OptimalityTol, dblParam["opttol"]);
+	//if(dblParam.count("opt_tol"))
+	//	d->model->getEnv().set(GRB_DoubleParam_OptimalityTol, dblParam["opt_tol"]);
 
-	if(dblParam.count("epgap"))
-		d->model->getEnv().set(GRB_DoubleParam_MIPGap, dblParam["epgap"]);
+	//if(dblParam.count("relative_mip_gap_tolerance"))
+    //d->model->getEnv().set(GRB_DoubleParam_MIPGap, dblParam["relative_mip_gap_tolerance"]);
+        
+    SetParam("log_file", 0, "str", "Failure to set the log file", false);
+        
+    // General settings
+    SetParam("log_output_stdout", 0, "bool", "Failure to turn on/off log output to stdout", false);
+    SetParam("log_level", GRB_IntParam_OutputFlag, "long", "Failure to set log level");
+    SetParam("use_data_checking", 0, "bool", "Failure to turn on/off data checking", false);
+    SetParam("nb_threads", GRB_IntParam_Threads, "long", "Failure to set the number of threads");
+    SetParam("use_preprocessor", 0, "bool", "Failure to use preprocessor", false);
+        
+    // MIP settings
+    SetParam("nb_cut_pass", 0, "long", "Failure to set the number of cut pass", false);
+    SetParam("feasibility_pump_level", 0, "long", "Failure to set the feasibility pump level", false);
+    SetParam("probing_level", 0, "long", "Failure to set the probing level", false);
+    SetParam("mip_emphasis", 0, "long", "Failure to set the MIP emphasis", false);
+    SetParam("use_cut_callback", 0, "bool", "Failure to use preprocessor", false);
+        
+    // Tolerance and limits
+    SetParam("time_limit", GRB_DoubleParam_TimeLimit, "dbl", "Failure to set time limit");
+    SetParam("max_iteration_limit", GRB_DoubleParam_IterationLimit, "long", "Failure to set the maximal number of simplex iterations");
+    SetParam("bounds_feasibility_tolerance", GRB_DoubleParam_FeasibilityTol, "dbl", "Failure to set bounds feasibility tolerance");
+    SetParam("optimality_tolerance", GRB_DoubleParam_OptimalityTol, "dbl", "Failure to set optimality tolerance");
+    SetParam("markowitz_tolerance", GRB_DoubleParam_MarkowitzTol, "dbl", "Failure to set Markowitz tolerance");
+    SetParam("absolute_mip_gap_tolerance", GRB_DoubleParam_MIPGapAbs, "dbl", "Failure to set absolute gap tolerance");
+    SetParam("relative_mip_gap_tolerance", GRB_DoubleParam_MIPGap, "dbl", "Failure to set relative gap tolerance");
+    SetParam("lp_objective_limit", GRB_DoubleParam_Cutoff, "dbl", "Failure to set lp objective limit");
+        
+    //http://www.gurobi.com/documentation/5.0/reference-manual/node653
 
 	}
 	catch(GRBException e)
@@ -352,6 +382,63 @@ long GenModelGurobi::Init(string name)
 	}
 
 	return 0;
+}
+
+long GenModelGurobi::SetDirectParam(int whichparam, genmodel_param value, string type, string message)
+{
+    try {
+    if(type == "dbl")
+        (static_cast<GurobiData*>(solverdata))->model->getEnv().set(GRB_DoubleParam(whichparam), value.dblval);
+    else if(type == "long")
+        (static_cast<GurobiData*>(solverdata))->model->getEnv().set(GRB_IntParam(whichparam), value.longval);
+    else if(type == "str")
+        (static_cast<GurobiData*>(solverdata))->model->getEnv().set(GRB_StringParam(whichparam), value.strval);
+    } catch (...)
+    {
+        printf("Exception during optimization\n");
+    }
+    return 0;
+}
+
+long GenModelGurobi::SetParam(string param, int whichparam, string type, string message, bool implemented)
+{
+    bool notimplmessage = boolParam.count("throw_on_unimplemeted_option") > 0 && boolParam["throw_on_unimplemeted_option"];
+    
+    if(type == "dbl")
+    {
+        if(dblParam.count(param) > 0 && implemented)
+            SetDirectParam(whichparam, dbl2param(dblParam[param]), type, message);
+        else if(notimplmessage && !implemented && dblParam.count(param) > 0)
+            throw (string("Parameter ")+param+" not implemented in GenModelGurobi");
+    }
+    else if(type == "long")
+    {
+        if(longParam.count(param) > 0 && implemented)
+            SetDirectParam(whichparam, long2param(longParam[param]), type, message);
+        else if(notimplmessage && !implemented && longParam.count(param) > 0)
+            throw (string("Parameter ")+param+" not implemented in GenModelGurobi");
+    }
+    else if(type == "str")
+    {
+        if(strParam.count(param) > 0 && implemented)
+            SetDirectParam(whichparam, str2param(strParam[param]), type, message);
+        else if(notimplmessage && !implemented && strParam.count(param) > 0)
+            throw (string("Parameter ")+param+" not implemented in GenModelGurobi");
+    }
+    else if(type == "bool")
+    {
+        if(boolParam.count(param) > 0 && implemented)
+        {
+            if(boolParam[param])
+                SetDirectParam(whichparam, long2param(0), "long", message);
+            else
+                SetDirectParam(whichparam, long2param(-1), "long", message);
+        }
+        else if(notimplmessage && !implemented && boolParam.count(param) > 0)
+            throw (string("Parameter ")+param+" not implemented in GenModelGurobi");
+    }
+    
+    return 0;
 }
 
 long GenModelGurobi::Clean()

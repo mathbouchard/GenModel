@@ -18,6 +18,8 @@
 
 #include "GenModel.h"
 #include <scip/scip.h>
+#include <scip/lpi.h>
+#include <scip/scipdefplugins.h>
 
 using namespace std;
 
@@ -32,8 +34,11 @@ public:
 	SCIP* scip;
     SCIP_VAR** vars;
     SCIP_CONS** cons;
-    SCIP_VAR* quad_var;
-    SCIP_CONS* quad_cons;
+    SCIP_VARTYPE* type;
+    long nc;
+    long qvar_index;
+    long qcons_index;
+	long nr;
     //char** cname;
 	//char** rname;
 };
@@ -54,6 +59,7 @@ public:
 	long ChangeBulkObjectives(int count, int * ind, double * vals);
     long ChangeBulkNz(int count, int* rind, int* cind, double* vals);
     long WriteProblemToLpFile(string filename);
+    long WriteSolutionToFile(string filename);
     long SwitchToMip();
     long SwitchToLp();
 	long DeleteMipStarts();
@@ -61,6 +67,8 @@ public:
 	long SetSol();
 	long Clean();
 	double GetMIPRelativeGap();
+    long SetDirectParam(string whichparam, genmodel_param value, string type, string message);
+    long SetParam(string param, string whichparam, string type, string message, bool implemented = true);
 };
 
 #endif // GenModelScip_H

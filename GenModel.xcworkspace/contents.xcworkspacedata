@@ -2,6 +2,12 @@
 <Workspace
    version = "1.0">
    <FileRef
+      location = "group:src/GenModelOsiInterface.cpp">
+   </FileRef>
+   <FileRef
+      location = "group:src/GenModelOsiInterface.h">
+   </FileRef>
+   <FileRef
       location = "group:../../gitwork/GenModel/src/GenModel.cpp">
    </FileRef>
    <FileRef
@@ -18,6 +24,12 @@
    </FileRef>
    <FileRef
       location = "group:../../gitwork/GenModel/src/GenModelGlpk.h">
+   </FileRef>
+   <FileRef
+      location = "group:src/GenModelGurobi.h">
+   </FileRef>
+   <FileRef
+      location = "group:src/GenModelGurobi.cpp">
    </FileRef>
    <FileRef
       location = "group:../../gitwork/GenModel/src/GenModelInterface.cpp">
@@ -41,6 +53,9 @@
       location = "group:src/GenModelInterface_ruby.cpp">
    </FileRef>
    <FileRef
+      location = "group:src/Test.cpp">
+   </FileRef>
+   <FileRef
       location = "group:../../gitwork/GenModel/src/GenModelOctave.cpp">
    </FileRef>
    <FileRef
@@ -59,10 +74,16 @@
       location = "group:build-release/SConscript">
    </FileRef>
    <FileRef
-      location = "group:src/GenModelCoin.cpp">
+      location = "group:src/GenModelOsi.cpp">
    </FileRef>
    <FileRef
-      location = "group:src/GenModelCoin.h">
+      location = "group:src/GenModelOsi.h">
+   </FileRef>
+   <FileRef
+      location = "group:src/ProblemReaderOsi.cpp">
+   </FileRef>
+   <FileRef
+      location = "group:src/ProblemReaderOsi.h">
    </FileRef>
    <FileRef
       location = "group:gem/genmodel.gemspec">

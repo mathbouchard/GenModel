@@ -1,5 +1,5 @@
 /*
- * ProblemReader.h
+ * ProblemReaderOsi.h
  *
  *  Created on: 2012-10-02
  *      Author: mbouchard

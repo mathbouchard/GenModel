@@ -238,6 +238,10 @@ def GetDualPrices(*args):
   return _genmodel.GetDualPrices(*args)
 GetDualPrices = _genmodel.GetDualPrices
 
+def GetSlacks(*args):
+  return _genmodel.GetSlacks(*args)
+GetSlacks = _genmodel.GetSlacks
+
 def GetReducedCosts(*args):
   return _genmodel.GetReducedCosts(*args)
 GetReducedCosts = _genmodel.GetReducedCosts

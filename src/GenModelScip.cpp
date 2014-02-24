@@ -1,5 +1,7 @@
 #include "GenModelScip.h"
-//#include "ProblemReader.h"
+#ifdef OSI_MODULE
+#include "ProblemReaderOsi.h"
+#endif
 #include <limits>
 
 GenModelScip::~GenModelScip()
@@ -13,18 +15,40 @@ GenModelScip::GenModelScip() {
 
 long GenModelScip::WriteProblemToLpFile(string filename)
 {
-    ScipData* d = static_cast<ScipData*>(solverdata);
-    SCIPwriteOrigProblem(d->scip, filename.c_str(), filename.substr(filename.find_last_of('.')).c_str(),false);
-
+    try {
+        ScipData* d = static_cast<ScipData*>(solverdata);
+        FILE* file = fopen(filename.c_str(), "w");
+        SCIPprintOrigProblem(d->scip, file, "lp", FALSE);
+        fclose(file);
+    } catch (string e) {
+        printf("Error : %s\n", e.c_str());
+    } catch (...) {
+        printf("GenModel - Unexpected exception\n");
+    }
     return 0;
 }
+
+long GenModelScip::WriteSolutionToFile(string filename)
+{
+    try {
+        ScipData* d = static_cast<ScipData*>(solverdata);
+        FILE* file = fopen(filename.c_str(), "w");
+        SCIP_CALL(SCIPprintBestSol(d->scip, file, false));
+        fclose(file);
+    } catch (string e) {
+        printf("Error : %s\n", e.c_str());
+    } catch (...) {
+        printf("GenModel - Unexpected exception\n");
+    }
+    return 0;
+}
+
 
 long GenModelScip::Solve()
 {
 	ScipData* d = static_cast<ScipData*>(solverdata);
 	SCIP_CALL(SCIPsolve(d->scip));
-    SCIP_CALL(SCIPfreeTransform(d->scip));
-
+    //SCIP_CALL(SCIPfreeTransform(d->scip));
 	return 0;
 }
 
@@ -35,47 +59,78 @@ long GenModelScip::SetSol()
 	vars.rc.clear();
 	vars.rc.resize(vars.n,0);
 	ScipData* d = (ScipData*)solverdata;
-
-    vector<double> x;
-    vector<SCIP_VAR*> ic(nc);
-    vector<SCIP_CONS*> ir(nr);
     
-	/*int tempstat = CPXgetstat (d->env, d->lp);
-	int tempfeas;
-	int tempdualfeas;
-	int temphassol;
-	int currmeth = CPXgetmethod(d->env, d->lp);
-     */
-	//CPXsolninfo(d->env, d->lp, &currmeth, &temphassol, &tempfeas, &tempdualfeas);
-    
-    SCIPgetSolVals	(d->scip, SCIPgetBestSol(d->scip), nc, &(ic[0]), &(x[0]));
-
 	//feasible = static_cast<bool>(tempfeas);
 	//dualfeasible = static_cast<bool>(tempdualfeas);
-	//hassolution= static_cast<bool>(temphassol);
+    
+    //printf("num cons = %d\n", SCIPgetNConss(d->scip));
+
+    printf("SetSol - Init\n");
+    
+	hassolution =  SCIPgetNSols(d->scip) > 0;
+    solstat = SCIPgetStatus(d->scip);
 
 	if(!hassolution)
 		return 1;
-
-	/*if(boolParam.count("mip") > 0 && boolParam["mip"])
-		status = CPXsolution (d->env, d->lp, &solstat, &objval, d->x, NULL, NULL, NULL);
-	else
-		status = CPXsolution (d->env, d->lp, &solstat, &objval, d->x, d->dual, d->slack, d->rcost);
-
-	solstat = tempstat;
-    */
-	for(long i = 0; i < long(nc); i++)
+    
+    printf("SCIP INVALID= %f %d\n",  SCIP_INVALID, vars.n);
+    
+    SCIP_SOL* sol = SCIPgetBestSol(d->scip);
+    SCIP_CALL(SCIPgetSolVals(d->scip, sol, nc, d->vars, &(vars.sol[0])));
+    
+    //double quad_part = SCIPgetSolVal(d->scip, sol, d->vars[d->qvar_index]);
+    
+    objval =  SCIPgetSolOrigObj(d->scip, sol);
+    
+     SCIP_Bool transformed;
+    
+    for(long i = 0; i < long(nc); i++)
 	{
-		vars.sol[i] = x[i];
-	//	vars.rc[i] = d->rcost[i];
+        SCIP_VAR* temp; // = d->vars[i];
+        if(transformed)
+            SCIP_CALL(SCIPgetTransformedVar(d->scip, d->vars[i], &temp));
+        else
+            temp = d->vars[i];
+        assert(temp != NULL);
+        assert(transformed == SCIPvarIsTransformed(temp));
+        if(boolParam.count("mip") == 0 || !boolParam["mip"])
+            vars.rc[i] = SCIPgetVarRedcost(d->scip, temp);
 	}
-
-	/*for(long i = 0; i < long(nr); i++)
+    
+    printf("SetSol - Set columns\n");
+    
+    //SCIP_VAR* temp;
+    //SCIP_CALL(SCIPgetTransformedVar(d->scip, d->vars[d->qvar_index], &temp));
+    
+	for(long i = 0; i < long(nr); i++)
 	{
-		consts[i].dual = d->dual[i];
-		consts[i].slack = d->slack[i];
-	}*/
+        SCIP_CONS* temp; // = d->cons[i];
+        if(transformed)
+            SCIP_CALL(SCIPgetTransformedCons(d->scip, d->cons[i], &temp));
+        else
+             temp = d->cons[i];
+        assert(temp != NULL);
+        assert(transformed == SCIPconsIsTransformed(temp));
+        if(boolParam.count("mip") == 0 || !boolParam["mip"])
+            consts[i].dual = SCIPgetDualsolLinear(d->scip, temp);
+        consts[i].slack =  consts[i].lrhs-SCIPgetActivityLinear(d->scip,temp,sol);
+        
+        //consts[i].slack = SCIPgetRhsLinear(d->scip, d->cons[i]);
+		//consts[i].slack = slack[i];
+	}
+    
+    printf("SetSol - Set rows\n");
+    
+    //SCIPinfoMessage(d->scip, NULL, "\nSolution:\n");
+    //SCIP_CALL(SCIPprintSol(d->scip, sol, NULL, false));
+    printf("Variable set objval = %f\n", objval);
+    
+    if(boolParam.count("print_version") > 0 && boolParam["print_version"])
+        printf("*********** Genmodel version = %s ***********\n", version.c_str());
 
+    
+    printf("SetSol - End\n");
+    
 	return 0;
 }
 
@@ -141,53 +196,34 @@ long GenModelScip::AddCol(int* newi, double* newcol, int nz, double obj, double 
 long GenModelScip::CreateModel()
 {
 	ScipData* d = (ScipData*)solverdata;
-	int status = 0;
 	
-    SCIPsetObjsense(d->scip,SCIP_OBJSENSE_MAXIMIZE);
+    SCIP_CALL(SCIPsetObjsense(d->scip,SCIP_OBJSENSE_MAXIMIZE));
 
 	if(boolParam.count("maximize") > 0 && boolParam["maximize"])
-		SCIPsetObjsense(d->scip,SCIP_OBJSENSE_MAXIMIZE);
+		SCIP_CALL(SCIPsetObjsense(d->scip,SCIP_OBJSENSE_MAXIMIZE));
 	else
-		SCIPsetObjsense(d->scip,SCIP_OBJSENSE_MINIMIZE);
+		SCIP_CALL(SCIPsetObjsense(d->scip,SCIP_OBJSENSE_MINIMIZE));
 	double lb;
     double ub;
-    double obj;
-    int type;
 	
-    d->cons = new SCIP_CONS*[nr];
-    d->vars = new SCIP_VAR*[nc];
-    //d->cname = new char*[nc];
-	//d->rname = new char*[nr];
-
+    d->qvar_index = -1;
+    d->qcons_index = -1;
+    d->nr = nr;
+    d->nc = nc;
+    if(boolParam.count("qp_mat") > 0 && boolParam["qp_mat"] && !vars.qi.empty())
+    {
+        ++(d->nc);
+        d->qvar_index = nc;
+        ++(d->nr);
+        d->qcons_index = nr;
+    }
+    d->cons = new SCIP_CONS*[d->nr];
+    d->vars = new SCIP_VAR*[d->nc];
+    d->type = new SCIP_VARTYPE[d->nc];
+    
 	nz=0;
     
-	for(unsigned long i = 0; i < nr; i++)
-	{
-        vector<SCIP_VAR*> cols;
-		for(unsigned long j = 0; j < consts[i].nz; j++)
-		{
-            cols[i] = d->vars[i];
-			nz++;
-		}
-		if(consts[i].lrhs == numeric_limits<double>::infinity())
-			lb = SCIPinfinity(d->scip);
-		else if(consts[i].lrhs == -numeric_limits<double>::infinity())
-			lb = -SCIPinfinity(d->scip);
-		else
-			lb = consts[i].lrhs;
-		if(consts[i].urhs == numeric_limits<double>::infinity())
-			ub = SCIPinfinity(d->scip);
-		else if(consts[i].urhs == -numeric_limits<double>::infinity())
-			ub = -SCIPinfinity(d->scip);
-		else
-			ub = consts[i].urhs-consts[i].lrhs;
-		if(consts[i].sense == 'L')
-            lb = -SCIPinfinity(d->scip);
-        
-        SCIPcreateConsBasicLinear(d->scip, &(d->cons), consts[i].name.c_str(), consts[i].cols.size(),
-                                  &(cols[0]), &(consts[i].coefs[0]), lb, ub);
-	}
-	for(unsigned long i = 0; i < nc; i++)
+    for(unsigned long i = 0; i < nc; i++)
 	{
 		if(vars.ub[i] == numeric_limits<double>::infinity())
 			ub = SCIPinfinity(d->scip);
@@ -201,84 +237,151 @@ long GenModelScip::CreateModel()
 			lb = -SCIPinfinity(d->scip);
 		else
 			lb = vars.lb[i];
-		d->type[i] = vars.type[i];
         switch (vars.type[i])
         {
             case 'B':
-                type = 0;
+                d->type[i] = SCIP_VARTYPE_BINARY;
                 break;
             case 'I':
-                type = 1;
+                d->type[i] = SCIP_VARTYPE_INTEGER;
                 break;
             case 'Z':
-                type = 2;
+                d->type[i] = SCIP_VARTYPE_IMPLINT;
                 break;
             case 'C':
-                type = 3;
+                d->type[i] = SCIP_VARTYPE_CONTINUOUS;
                 break;
             default:
-                type = 3;
+                d->type[i] = SCIP_VARTYPE_CONTINUOUS;
                 break;
         }
-        SCIP_CALL(SCIPcreateVarBasic(d->scip, &(d->vars[i]), vars.name[i].c_str(), lb, ub, obj, type));
+        SCIP_CALL(SCIPcreateVarBasic(d->scip, &(d->vars[i]), vars.name[i].c_str(), lb, ub, vars.obj[i], d->type[i]));
         SCIP_CALL(SCIPaddVar(d->scip, d->vars[i]));
 	}
-	//if(boolParam.count("mip") > 0 && boolParam["mip"])
-	
-	vector<long>::iterator iti;
-	vector<long>::iterator itj = vars.qj.begin();
-	//vector<double>::iterator itv = vars.qobj.begin();
-
-    vector<SCIP_VARS*> qpi;
-    vector<SCIP_VARS*> qpj;
-    //vector<SCIP_REAL> qpv;
-    int qpnz=0;
-
-	if(!vars.qi.empty())
+    
+	for(unsigned long i = 0; i < nr; i++)
 	{
-        boolParam["qp"] = true;
-		qpbeg = new int[nc];
-		qpnum = new int[nc];
+        vector<SCIP_VAR*> cols(consts[i].nz);
+		for(unsigned long j = 0; j < consts[i].nz; j++)
+		{
+            cols[j] = d->vars[consts[i].cols[j]];
+			nz++;
+		}
+        if(consts[i].sense == 'R')
+        {
+            if(consts[i].lrhs == numeric_limits<double>::infinity())
+                lb = SCIPinfinity(d->scip);
+            else if(consts[i].lrhs == -numeric_limits<double>::infinity())
+                lb = -SCIPinfinity(d->scip);
+            else
+                lb = consts[i].lrhs;
+            if(consts[i].urhs == numeric_limits<double>::infinity())
+                ub = SCIPinfinity(d->scip);
+            else if(consts[i].urhs == -numeric_limits<double>::infinity())
+                ub = -SCIPinfinity(d->scip);
+            else
+                ub = consts[i].urhs-consts[i].lrhs;
+        }
+        else if(consts[i].sense == 'G')
+        {
+            ub = SCIPinfinity(d->scip);
+            if(consts[i].lrhs == numeric_limits<double>::infinity())
+                lb = SCIPinfinity(d->scip);
+            else if(consts[i].lrhs == -numeric_limits<double>::infinity())
+                lb = -SCIPinfinity(d->scip);
+            else
+                lb = consts[i].lrhs;
+        }
+        else if(consts[i].sense == 'E')
+        {
+            if(consts[i].lrhs == numeric_limits<double>::infinity())
+                lb = SCIPinfinity(d->scip);
+            else if(consts[i].lrhs == -numeric_limits<double>::infinity())
+                lb = -SCIPinfinity(d->scip);
+            else
+                lb = consts[i].lrhs;
+            ub = lb;
+        }
+        else
+        {
+            lb = -SCIPinfinity(d->scip);
+            if(consts[i].lrhs == numeric_limits<double>::infinity())
+                ub = SCIPinfinity(d->scip);
+            else if(consts[i].lrhs == -numeric_limits<double>::infinity())
+                ub = -SCIPinfinity(d->scip);
+            else
+                ub = consts[i].lrhs;
+        }
+        
+        SCIP_CALL(SCIPcreateConsBasicLinear(d->scip, &d->cons[i], consts[i].name.c_str(), consts[i].nz, &(cols[0]), &(consts[i].coefs[0]), lb, ub));
+        //SCIP_CALL(SCIPcreateConsLinear(d->scip, &d->cons[i], consts[i].name.c_str(), consts[i].nz, &(cols[0]), &(consts[i].coefs[0]), lb, ub,
+        //                                    true,true,true,true,true,false,true,false,false,false));
+        SCIP_CALL(SCIPaddCons(d->scip, d->cons[i]));
 	}
+	if(!vars.qi.empty())
+        boolParam["qp"] = true;
     if(boolParam["qp_mat"])
     {
+        vector<long>::iterator iti;
+        vector<long>::iterator itj = vars.qj.begin();
+        vector<double>::iterator itv = vars.qobj.begin();
+        vector<SCIP_VAR*> qpi;
+        vector<SCIP_VAR*> qpj;
+        vector<double> qpv;
+        int qpnz=0;
+        
         for(iti = vars.qi.begin(); iti != vars.qi.end(); iti++, itj++, itv++)
         {
-            if(*iti < *itj)
+            if(*iti <= *itj)
             {
-                qpi.push_back(*iti);
-                qpj.push_back(*itj);
-                //qpv.push_back(*itv);
+                qpi.push_back(d->vars[*iti]);
+                qpj.push_back(d->vars[*itj]);
+                qpv.push_back(*itv);
                 qpnz++;
+                printf("%d, %d = %f %d\n", *iti, *itj, *itv, qpnz);
                 if(*iti != *itj)
                 {
-                    qpi.push_back(*itj);
-                    qpj.push_back(*iti);
-                    //qpv.push_back(*itv);
+                    qpi.push_back(d->vars[*itj]);
+                    qpj.push_back(d->vars[*iti]);
+                    qpv.push_back(*itv);
                     qpnz++;
+                    printf("%d, %d = %f %d\n", *iti, *itj, *itv, qpnz);
                 }
             }
         }
+        
         if(!vars.qi.empty())
         {
-            SCIP_CALL(SCIPcreateVarBasic(d->scip, &quad_var, "qvar", 0, SCIPinfinity(d->scip), 1.0, 3));
-            SCIP_CALL(SCIPaddVar(d->scip, quad_var);
-            nc++;
-            
-            // maximize => y <= x^2 : 0 <= x^2-y <= Inf
-            // minimize => y >= x^2 : -Inf <= x^2-y <= 0
+            SCIP_CALL(SCIPcreateVarBasic(d->scip, &(d->vars[d->qvar_index]), "quad_obj", -SCIPinfinity(d->scip), SCIPinfinity(d->scip), 1.0, SCIP_VARTYPE_CONTINUOUS));
+            SCIP_CALL(SCIPaddVar(d->scip, d->vars[d->qvar_index]));
+            // maximize => quad_obj = a_i x_i^2 : x^2-quad_obj = 0
+            // minimize => quad_obj = a_i x_i^2 : x^2-quad_obj = 0
             
             double lincoefs = -1.0;
-            double qlhs = (boolParam.count("maximize") > 0 && boolParam["maximize"] ? 0.0 : -SCIPinfinity(d->scip));
-            double qrhs = (boolParam.count("maximize") > 0 && boolParam["maximize"] ? SCIPinfinity(d->scip) : 0.0);
-            SCIPcreateConsBasicQuadratic(d->scip, quad_cons, "qobj", 1, &quad_var, &lincoefs, qpnz, &(qpi[0]),
-                                         &(qpj[0]), &(vars.qobj) /*&(qpv[0])*/, qlhs, qrhs);
+            //double qlhs = (boolParam.count("maximize") > 0 && boolParam["maximize"] ? 0.0 : -SCIPinfinity(d->scip));
+            //double qrhs = (boolParam.count("maximize") > 0 && boolParam["maximize"] ? SCIPinfinity(d->scip) : 0.0);
+            SCIP_CALL(SCIPcreateConsBasicQuadratic(d->scip, &(d->cons[d->qcons_index]), "qobj", 1, &(d->vars[d->qvar_index]), &lincoefs, qpnz, &(qpi[0]),
+                                                   &(qpj[0]), &(qpv[0]), 0.0, 0.0));//qlhs, qrhs));
+            SCIP_CALL(SCIPaddCons(d->scip, d->cons[d->qcons_index]));
         }
 	}
-                      
+    
 	return 0;
 }
 
+long GenModelScip::CreateModel(string filename, int type, string dn)
+{
+#ifdef OSI_MODULE
+    ReadFromFile(static_cast<GenModel*>(this), filename, type);
+    SetNumbers();
+    CreateModel();
+#else
+    throw string("Cannot use CreateModel(filenamem, type, dn) : Osi Module not present");
+#endif
+    return 0;
+}
+
+/*
 long GenModelScip::CreateModel(string filename, int type, string dn)
 {
     name = dn;
@@ -291,6 +394,7 @@ long GenModelScip::CreateModel(string filename, int type, string dn)
     
     return 0;
 }
+ */
 
 long GenModelScip::ChangeBulkBounds(int count, int * ind, char * type, double * vals)
 {
@@ -379,8 +483,9 @@ double GenModelScip::GetMIPRelativeGap()
 	CPXgetbestobjval(d->env, d->lp, &bestobjval);
 	if (bestobjval > 0)	// If the optimal solution is found by the presolve, the CPXgetbestobjval = 0, and the CPXgetmiprelgap ~ 1
 		CPXgetmiprelgap(d->env, d->lp, &gap);
-	*/
-	return gap;
+	
+	return gap;*/
+    return 0.0;
 }
 
 long GenModelScip::SwitchToMip()
@@ -425,6 +530,7 @@ long GenModelScip::SwitchToLp()
 
 long GenModelScip::Init(string name)
 {
+    try {
 	if(solverdata == NULL)
 		solverdata = new ScipData();
 	else
@@ -434,15 +540,120 @@ long GenModelScip::Init(string name)
 	}
 
 	ScipData* d = static_cast<ScipData*>(solverdata);
-	int status = 0;
 
+        
 	SCIP_CALL( SCIPcreate(&(d->scip)) );
     SCIP_CALL( SCIPincludeDefaultPlugins(d->scip) );
-
+        
     // create empty problem
     SCIP_CALL( SCIPcreateProbBasic(d->scip, name.c_str()));
+        
+    SCIP_CALL( SCIPwriteParams(d->scip, "tmp/scip_before_params.set", TRUE, FALSE) );
+    
+    SetParam("log_file", "", "str", "Failure to set the log file", false);
+    
+    // General settings
+    SetParam("log_output_stdout", "", "bool", "Failure to turn on/off log output to stdout", false);
+    SetParam("log_level", "display/verblevel", "long", "Failure to set log level");
+    SetParam("use_data_checking", "", "bool", "Failure to turn on/off data checking", false);
+    SetParam("nb_threads", "lp/threads", "long", "Failure to set the number of threads");
+    SetParam("use_preprocessor", "presolving/maxrounds", "bool", "Failure to use preprocessor");
+        
+    
+    // MIP settings
+    SetParam("nb_cut_pass", "", "long", "Failure to set the number of cut pass", false);
+    SetParam("feasibility_pump_level", "", "long", "Failure to set the feasibility pump level", false);
+    SetParam("probing_level", "", "long", "Failure to set the probing level", false);
+    SetParam("mip_emphasis", "", "long", "Failure to set the MIP emphasis", false);
+    SetParam("use_cut_callback", "", "bool", "Failure to use preprocessor", false);
+    
+    // Tolerance and limits
+    SetParam("time_limit", "limits/time", "dbl", "Failure to set time limit");
+    SetParam("max_iteration_limit", "lp/iterlim", "long", "Failure to set the maximal number of simplex iterations");
+    SetParam("bounds_feasibility_tolerance", "numerics/feastol", "dbl", "Failure to set bounds feasibility tolerance");
+    SetParam("bounds_feasibility_tolerance", "numerics/dualfeastol", "dbl", "Failure to set bounds feasibility tolerance");
+    SetParam("optimality_tolerance", "", "dbl", "Failure to set optimality tolerance", false);
+    SetParam("markowitz_tolerance", "", "dbl", "Failure to set Markowitz tolerance", false);
+    SetParam("absolute_mip_gap_tolerance", "limits/absgap", "dbl", "Failure to set absolute gap tolerance");
+    SetParam("relative_mip_gap_tolerance", "limits/gap", "dbl", "Failure to set relative gap tolerance");
+    SetParam("lp_objective_limit", "", "dbl", "Failure to set lp objective limit", false);
+    SetParam("lp_objective_limit", "", "dbl", "Failure to set lp objective limit", false);
+        
+    SCIP_CALL( SCIPwriteParams(d->scip, "tmp/scip_after_params.set", TRUE, FALSE) );
+    
+    //See http://scip.zib.de/doc/html/PARAMETERS.shtml
+ 
+    } catch (string e) {
+        printf("Error : %s\n", e.c_str());
+    }
+    
+    
     
 	return 0;
+}
+
+long GenModelScip::SetDirectParam(string whichparam, genmodel_param value, string type, string message)
+{
+    SCIP_RETCODE status = SCIP_OKAY;
+    if(type == "dbl")
+        status = SCIPsetRealParam((static_cast<ScipData*>(solverdata))->scip, whichparam.c_str(), value.dblval);
+    else if(type == "long")
+        SCIPsetIntParam((static_cast<ScipData*>(solverdata))->scip, whichparam.c_str(), value.longval);
+    else if(type == "str")
+        SCIPsetStringParam((static_cast<ScipData*>(solverdata))->scip, whichparam.c_str(), value.strval);
+    else if(type == "char")
+        SCIPsetCharParam((static_cast<ScipData*>(solverdata))->scip, whichparam.c_str(), (value.strval)[0]);
+    if ( status != SCIP_OKAY )
+        return ThrowError(message);
+    return 0;
+}
+
+long GenModelScip::SetParam(string param, string whichparam, string type, string message, bool implemented)
+{
+    bool notimplmessage = boolParam.count("throw_on_unimplemeted_option") > 0 && boolParam["throw_on_unimplemeted_option"];
+    
+    if(type == "dbl")
+    {
+        if(dblParam.count(param) > 0 && implemented)
+            SetDirectParam(whichparam, dbl2param(dblParam[param]), type, message);
+        else if(notimplmessage && !implemented && dblParam.count(param) > 0)
+            throw (string("Parameter ")+param+" not implemented in GenModelScip");
+    }
+    else if(type == "long")
+    {
+        if(longParam.count(param) > 0 && implemented)
+            SetDirectParam(whichparam, long2param(longParam[param]), type, message);
+        else if(notimplmessage && !implemented && longParam.count(param) > 0)
+            throw (string("Parameter ")+param+" not implemented in GenModelScip");
+    }
+    else if(type == "str")
+    {
+        if(strParam.count(param) > 0 && implemented)
+            SetDirectParam(whichparam, str2param(strParam[param]), type, message);
+        else if(notimplmessage && !implemented && strParam.count(param) > 0)
+            throw (string("Parameter ")+param+" not implemented in GenModelScip");
+    }
+    else if(type == "char")
+    {
+        if(strParam.count(param) > 0 && implemented)
+            SetDirectParam(whichparam, str2param(strParam[param]), type, message);
+        else if(notimplmessage && !implemented && strParam.count(param) > 0)
+            throw (string("Parameter ")+param+" not implemented in GenModelScip");
+    }
+    else if(type == "bool")
+    {
+        if(boolParam.count(param) > 0 && implemented)
+        {
+            if(boolParam[param])
+                SetDirectParam(whichparam, long2param(0), "long", message);
+            else
+                SetDirectParam(whichparam, long2param(-1), "long", message);
+        }
+        else if(notimplmessage && !implemented && boolParam.count(param) > 0)
+            throw (string("Parameter ")+param+" not implemented in GenModelScip");
+    }
+    
+    return 0;
 }
 
 long GenModelScip::Clean()
@@ -473,18 +684,17 @@ ScipData::~ScipData()
 
 long ScipData::ClearStructure()
 {
-    ScipData* d = static_cast<ScipData*>(solverdata);
     if(vars != NULL)
     {
         for(int i = 0; i < nc; i++)
-            SCIP_CALL(SCIPreleaseVar(d->vars[i]));
+            SCIP_CALL(SCIPreleaseVar(scip,&vars[i]));
     }
     if(cons != NULL)
     {
         for(int i = 0; i < nr; i++)
-            SCIP_CALL(SCIPreleaseCons(d->vars[i]));
+            SCIP_CALL(SCIPreleaseCons(scip,&cons[i]));
     }
-	SCIP_CALL( SCIPfree(&(d->scip)) );
+    SCIP_CALL( SCIPfree(&scip) );
     Reset();
     
     return 0;

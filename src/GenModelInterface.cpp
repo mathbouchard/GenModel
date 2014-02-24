@@ -4,23 +4,27 @@
 #include "GenModelInterface.h"
 
 #ifdef CPLEX_MODULE
-	#include "GenModelCplex.h"
+#include "GenModelCplex.h"
 #endif
 
-#ifdef GUROBI_MODULEZ
-	#include "GenModelGurobi.h"
+#ifdef GUROBI_MODULE
+#include "GenModelGurobi.h"
 #endif
 
 #ifdef HG_MODULEZ
-	#include "GenModelHG.h"
+#include "GenModelHG.h"
 #endif
 
 #ifdef GLPK_MODULE
-	#include "GenModelGlpk.h"
+#include "GenModelGlpk.h"
 #endif
 
-#ifdef COIN_MODULE
-    #include "GenModelCoin.h"
+#ifdef OSI_MODULE
+#include "GenModelOsi.h"
+#endif
+
+#ifdef SCIP_MODULE
+#include "GenModelScip.h"
 #endif
 
 #include <vector>
@@ -133,7 +137,7 @@ long AddNzBulk(long* rows, long* cols, double* values, long valuesLength, long r
 {
     VerifyId(token);
 	//printf ("AddNzBulk %ld,%ld,%ld,%ld\n",valuesLength, rowCount, colCount, iterations);
-
+    
 	int rowIndex = 0;
 	int colIndex = 0;
 	for(int iter = 1; iter <= iterations; iter++)
@@ -207,7 +211,7 @@ long CreateNewModel(char type, char* name = NULL)
             (SCIP_EXIST ? SCIP_CREATE : (GLPK_EXIST ? GLPK_CREATE : throw "Neither Scip nor Glpk (deafault fallback solver) are available"));
             break;
         case 'O':
-            (COIN_EXIST ? COIN_CREATE : (GLPK_EXIST ? GLPK_CREATE : throw "Neither Coin nor Glpk (deafault fallback solver) are available"));
+            (OSI_EXIST ? OSI_CREATE : (GLPK_EXIST ? GLPK_CREATE : throw "Neither Osi nor Glpk (deafault fallback solver) are available"));
             break;
         default:
             throw string("Unknown solver");
@@ -241,7 +245,7 @@ bool IsSolverAvailable(char type)
             return SCIP_EXIST;
             break;
         case 'O':
-            return COIN_EXIST;
+            return OSI_EXIST;
             break;
         default:
             return false;
@@ -283,68 +287,63 @@ long SolveModel(long token)
 	gmmap[token]->Solve();
 	gmmap[token]->SetSol();
     /*for(int i = 0; i < gmmap[token]->nc; i++)
-	{
-		printf("%s: %f\n", gmmap[token]->vars.name[i].c_str(), gmmap[token]->vars.sol[i]);	// Solution des variables
-	}*/
+     {
+     printf("%s: %f\n", gmmap[token]->vars.name[i].c_str(), gmmap[token]->vars.sol[i]);	// Solution des variables
+     }*/
 	return long(gmmap[token]->solstat);
-}
-
-bool GetSolVars(double* values, long length, long token)
-{
-    VerifyId(token);
-    //printf("\tC++: Adress GetSolVars use is %p size = %d / %ld\n", values, length, gmmap[token]->nc);
-	if (length != gmmap[token]->nc)
-	{
-		return false;
-	}
-
-	for(int i = 0; i < gmmap[token]->nc; i++)
-	{
-        //printf("\tC++: %s -> %f\n", gmmap[token]->vars.name[i].c_str(), gmmap[token]->vars.sol[i]);
-		values[i] = gmmap[token]->vars.sol[i];	// Solution des variables
-	}
-
-	return true;
 }
 
 bool HasSolution(long token)
 {
     VerifyId(token);
-	//printf("before return %d\n", gmmap[token]->hassolution);
 	return gmmap[token]->hassolution;
+}
+
+bool GetSolVars(double* values, long length, long token)
+{
+    VerifyId(token);
+	if (length != gmmap[token]->nc)
+		throw string("Wrong length : GetSolVars()");
+    
+	for(int i = 0; i < gmmap[token]->nc; i++)
+		values[i] = gmmap[token]->vars.sol[i];
+    
+	return true;
 }
 
 bool GetDualPrices(double* values, long length, long token)
 {
     VerifyId(token);
-    //printf("\tC++: Adress GetDualPrices use is %p size = %ld\n", values, length, gmmap[token]->nr);
 	if (length != gmmap[token]->nr)
-	{
-		return false;
-	}
-
+		throw string("Wrong length : GetDualPrices()");
+    
 	for(int i = 0; i < gmmap[token]->nr; i++)
-	{
-        //printf("\tC++: %s -> %f\n", gmmap[token]->consts[i].name.c_str(), gmmap[token]->consts[i].dual);
-		values[i] = gmmap[token]->consts[i].dual;	// Dual prices des contraintes
-	}
-
+		values[i] = gmmap[token]->consts[i].dual;
+    
 	return true;
+}
+
+bool GetSlacks(double* values, long length, long token)
+{
+    VerifyId(token);
+	if (length != gmmap[token]->nr)
+		throw string("Wrong length : GetSlacks()");
+    
+	for(int i = 0; i < gmmap[token]->nr; i++)
+		values[i] = gmmap[token]->consts[i].slack;
+    
+    return true;
 }
 
 bool GetReducedCosts(double* values, long length, long token)
 {
     VerifyId(token);
 	if (length != gmmap[token]->nc)
-	{
-		return false;
-	}
-
+		throw string("Wrong length : GetReducedCosts()");
+    
 	for(int i = 0; i < gmmap[token]->nc; i++)
-	{
-		values[i] = gmmap[token]->vars.rc[i];	// Reduced cost for variables
-	}
-
+		values[i] = gmmap[token]->vars.rc[i];
+    
 	return true;
 }
 
@@ -355,7 +354,7 @@ bool GetRowValues(double* values, long length, long rowIndex, long token)
 	{
 		return false;
 	}
-
+    
 	memset(values, 0, sizeof(double)*length);
 	for(int i = 0; i < int(gmmap[token]->consts[rowIndex].cols.size()); i++)
 		values[gmmap[token]->consts[rowIndex].cols[i]] = gmmap[token]->consts[rowIndex].coefs[i];
@@ -370,12 +369,12 @@ bool GetObjCoef(double* values, long length, long token)
 	{
 		return false;
 	}
-
+    
 	for(int i = 0; i < gmmap[token]->nc; i++)
 	{
 		values[i] = gmmap[token]->vars.obj[i];
 	}
-
+    
 	return true;
 }
 
@@ -386,13 +385,13 @@ bool GetBounds(double* lb, double* ub, long length, long token)
 	{
 		return false;
 	}
-
+    
 	for(int i = 0; i < gmmap[token]->nc; i++)
 	{
 		lb[i] = gmmap[token]->vars.lb[i];
 		ub[i] = gmmap[token]->vars.ub[i];
 	}
-
+    
 	return true;
 }
 
@@ -401,7 +400,7 @@ double GetLowerBound(long col, long token)
     VerifyId(token);
 	if (col != gmmap[token]->nc || col < 0)
         return (numeric_limits<double>::has_signaling_NaN ? numeric_limits<double>::signaling_NaN() : numeric_limits<double>::quiet_NaN());
-
+    
 	return gmmap[token]->vars.lb[col];
 }
 
@@ -427,7 +426,7 @@ bool SetUpperBound(long col, double val, long token)
 {
     VerifyId(token);
 	if (col != gmmap[token]->nc || col < 0)
-    return false;
+        return false;
     gmmap[token]->vars.ub[col] = val;
 	return true;
 }

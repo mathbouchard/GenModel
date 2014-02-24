@@ -26,8 +26,19 @@
 //#include <sys/time.h>
 #include <stdarg.h>
 #include <float.h>
+#include <limits>
 
 using namespace std;
+
+union genmodel_param {
+    long longval;
+    double dblval;
+    const char* strval;
+};
+
+genmodel_param dbl2param(double val);
+genmodel_param long2param(long val);
+genmodel_param str2param(string val);
 
 class ModVars
 {
@@ -99,6 +110,7 @@ public:
 	long SetDblParam(string param, double val);
 	long SetBoolParam(string param, bool val);
 	long SetStrParam(string param, string val);
+    long ThrowError(string error);
 	virtual long Init(string name) = 0;
 	virtual long CreateModel() = 0;
 	virtual long Solve() = 0;
@@ -122,6 +134,7 @@ public:
 	unsigned long nr;
 	unsigned long nz;
 	ModVars vars;
+    string version;
 
 	double objval;
 	int solstat;

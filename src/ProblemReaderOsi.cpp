@@ -1,11 +1,11 @@
 /*
- * ProblemReader.cpp
+ * ProblemReaderOsi.cpp
  *
  *  Created on: 2012-10-02
  *      Author: mbouchard
  */
 
-#include "ProblemReader.h"
+#include "ProblemReaderOsi.h"
 
 int ReadFromFile(GenModel* pgm, string fn, int type, string dn)
 {

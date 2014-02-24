@@ -1,5 +1,7 @@
 #include "GenModelGlpk.h"
-//#include "ProblemReader.h"
+#ifdef OSI_MODULE
+#include "ProblemReaderOsi.h"
+#endif
 #include <limits>
 
 long GenModelGlpk::Solve()
@@ -78,13 +80,14 @@ long GenModelGlpk::SetSol()
 		{
 			//consts[i].dual = glp_get_row_prim(d->model, i+1);
 			//consts[i].slack = glp_get_row_dual(d->model, i+1);
-			consts[i].slack = glp_get_row_prim(d->model, i+1);
+			consts[i].slack = consts[i].lrhs-glp_get_row_prim(d->model, i+1);
 			consts[i].dual = glp_get_row_dual(d->model, i+1);
 		}
 	}
 	//if (solstat == GLP_OPT)
 	//	solstat = 1;
-
+    if(boolParam.count("print_version") > 0 && boolParam["print_version"])
+        printf("*********** Genmodel version = %s ***********\n", version.c_str());
 
 	return 0;
 }
@@ -201,10 +204,13 @@ long GenModelGlpk::CreateModel()
 
 long GenModelGlpk::CreateModel(string filename, int type, string dn)
 {
-    //ReadFromFile(static_cast<GenModel*>(this), filename, type);
+#ifdef OSI_MODULE
+    ReadFromFile(static_cast<GenModel*>(this), filename, type);
     SetNumbers();
     CreateModel();
-    
+#else
+    throw string("Cannot use CreateModel(filenamem, type, dn) : Osi Module not present");
+#endif
     return 0;
 }
 
@@ -319,16 +325,23 @@ long GenModelGlpk::Init(string name)
 	glp_init_smcp(&(d->simplex_param));
 	glp_init_iocp(&(d->mip_param));
 
-	if(boolParam.count("screenoff") > 0 && boolParam["screenoff"])
+	if(boolParam.count("log_output_stdout") > 0 && !boolParam["log_output_stdout"])
 	{
 		d->simplex_param.msg_lev = GLP_MSG_OFF;
 		d->mip_param.msg_lev = GLP_MSG_OFF;
 	}
-	if(dblParam.count("timelimit") > 0)
+	if(dblParam.count("time_limit") > 0)
 	{
-		d->simplex_param.tm_lim = dblParam["timelimit"] * 1000;
-		d->mip_param.tm_lim = dblParam["timelimit"] * 1000;
+		d->simplex_param.tm_lim = dblParam["time_limit"] * 1000;
+		d->mip_param.tm_lim = dblParam["time_limit"] * 1000;
 	}
+    if(dblParam.count("relative_mip_gap_tolerance") > 0)
+	{
+		//d->simplex_param.tm_lim = dblParam["relative_mip_gap_tolerance"];
+		d->mip_param.mip_gap = dblParam["relative_mip_gap_tolerance"];
+	}
+    
+    
 	return 0;
 }
 
