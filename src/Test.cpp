@@ -21,6 +21,30 @@ int main(int argc, char** argv)
     bool quadratic = false;
     bool mip = true;
     
+    printf("*********** Testing if the library is present ***********\n");
+    void* genmodel_lib = NULL;
+    bool (*_IsSolverAvailable)(char type) = NULL;
+#ifdef Darwin
+    string suffix = string(".dylib");
+#else
+    string suffix = string(".so");
+#endif
+    genmodel_lib = dlopen((string("libgenmodel")+suffix).c_str(), RTLD_LAZY);
+    if(genmodel_lib == NULL)
+    {
+        printf("Falling back to default installation directory : %s\n", (string("/usr/local/lib/libgenmodel")+suffix).c_str());
+        //genmodel_lib = dlopen((string("/Users/mbouchard/gitwork/GenModel/lib/libgenmodel")+suffix).c_str(), RTLD_LAZY);
+        genmodel_lib = dlopen((string("/usr/local/lib/libgenmodel")+suffix).c_str(), RTLD_LAZY);
+    }
+    if(genmodel_lib == NULL)
+        throw string("Genmodel C++ library is missing or is not in the library path\n");
+    *(void **)(&_IsSolverAvailable) = dlsym(genmodel_lib, "IsSolverAvailable");
+    if ((error = dlerror()) != NULL) {call_error("IsSolverAvailable");}
+    printf("IsSolverAvailable loaded, ptr = %p\n",  (void *)_IsSolverAvailable);
+    dlclose(genmodel_lib);
+    genmodel_lib = NULL;
+    printf("*********** Testing done ***********\n");
+    
     printf("Solving problem from Integer Programming book p.130\n\n");
     printf("z = max 4 x1 - 1 x2\n");
     printf("        7 x1 - 2 x2 <= 14\n");

@@ -226,7 +226,7 @@ print("building test program")
 env["LIBPATH"].append("../lib")
 test_libs_list = list(env["LIBS"])
 test_libs_list.append("genmodel")
-env.Program(target = "../bin/test", source = "Test.cpp", LIBS=test_libs_list)
+env.Program(target = "../bin/test", source = "Test.cpp", LIBS=test_libs_list, CPPDEFINES = cppdefines)
 print("done")
 
 if (missingModules):
