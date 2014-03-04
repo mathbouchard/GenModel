@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <string>
 #include <vector>
+#include <dlfcn.h>
 #include "GenModelInterface.h"
 
 using namespace std;
@@ -24,6 +25,7 @@ int main(int argc, char** argv)
     printf("*********** Testing if the library is present ***********\n");
     void* genmodel_lib = NULL;
     bool (*_IsSolverAvailable)(char type) = NULL;
+    char* error = NULL;
 #ifdef Darwin
     string suffix = string(".dylib");
 #else
@@ -39,7 +41,7 @@ int main(int argc, char** argv)
     if(genmodel_lib == NULL)
         throw string("Genmodel C++ library is missing or is not in the library path\n");
     *(void **)(&_IsSolverAvailable) = dlsym(genmodel_lib, "IsSolverAvailable");
-    if ((error = dlerror()) != NULL) {call_error("IsSolverAvailable");}
+    if ((error = dlerror()) != NULL) {throw string("Cannot link to IsSolverAvailable");}
     printf("IsSolverAvailable loaded, ptr = %p\n",  (void *)_IsSolverAvailable);
     dlclose(genmodel_lib);
     genmodel_lib = NULL;
