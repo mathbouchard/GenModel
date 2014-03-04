@@ -8,6 +8,10 @@
 #ifndef PROBLEMREADER_H_
 #define PROBLEMREADER_H_
 
+#ifndef CBC_THREAD
+    #define CBC_THREAD
+#endif
+
 #if defined WIN64 || defined WIN32
 	#ifndef snprintf
 		#define snprintf sprintf_s

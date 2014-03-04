@@ -7,6 +7,11 @@
 
 #include "GenModelOsi.h"
 #include "ProblemReaderOsi.h"
+#include "CbcHeuristicFPump.hpp"
+#include "CbcHeuristicRINS.hpp"
+#include "CbcHeuristicLocal.hpp"
+#include "CbcHeuristicDiveCoefficient.hpp"
+#include "CbcHeuristicDiveFractional.hpp"
 #include <limits>
 
 using namespace std;
@@ -86,7 +91,7 @@ long GenModelOsi::Solve()
     generator4.setMinimumViolation(0.005);
     generator4.setMinimumViolationPer(0.00002);
     // try larger limit
-    generator4.setMaximumEntries(200);
+    generator4.setMaximumEntries(50); //(200); //maybe originally 50
     
     CglClique generator5;
     generator5.setStarCliqueReport(false);
@@ -99,6 +104,8 @@ long GenModelOsi::Solve()
     d->mipmodel = new CbcModel(*(d->model));
     // Add in generators
     // Only some generators work (and even then try without first)
+    
+    
     d->mipmodel->addCutGenerator(&generator1,1,"Probing");
     // Allow rounding heuristic
 
@@ -110,15 +117,16 @@ long GenModelOsi::Solve()
     d->mipmodel->addCutGenerator(&flowGen,-99,"FlowCover",true,false,false,-99);
     d->mipmodel->addCutGenerator(&mixedGen,-99,"MixedIntegerRounding",true,false,false,-100);
     
-    CbcRounding heuristic1(*(d->mipmodel));
-    
+    CbcRounding rounding(*(d->mipmodel));
+    rounding.setHeuristicName("Rounding");
     // do not add yet as don't know how to deal with quadratic objective
-    d->mipmodel->addHeuristic(&heuristic1);
-    
-    CbcHeuristicGreedyCover heuristic2(*(d->mipmodel));
+    d->mipmodel->addHeuristic(&rounding);
+    rounding.setHeuristicName("Greedy cover");
+    CbcHeuristicGreedyCover greedy(*(d->mipmodel));
     // Use original upper and perturb more
-    heuristic2.setAlgorithm(11);
-    d->mipmodel->addHeuristic(&heuristic2);
+    greedy.setAlgorithm(11);
+    greedy.setHeuristicName("Greedy cover");
+    d->mipmodel->addHeuristic(&greedy);
 
     // Redundant definition of default branching (as Default == User)
     //CbcBranchUserDecision branch;
@@ -134,11 +142,68 @@ long GenModelOsi::Solve()
     // Do initial solve to continuous
     d->mipmodel->initialSolve();
     
+    double objValue = d->mipmodel->getObjValue();
+    
+    CbcHeuristicDiveCoefficient heuristicDC(*(d->mipmodel));
+    heuristicDC.setHeuristicName("DiveCoefficient");
+    // allow to exit if close enough to optimum
+    heuristicDC.setSwitches(1);
+    d->mipmodel->addHeuristic(&heuristicDC);
+    CbcHeuristicDiveFractional heuristicDF(*(d->mipmodel));
+    heuristicDF.setHeuristicName("DiveFractional");
+    heuristicDF.setSwitches(1);
+    d->mipmodel->addHeuristic(&heuristicDF);
+    CbcHeuristicFPump pump(*(d->mipmodel));
+    // allow to exit if close enough to optimum
+    // plus some dubious options
+    pump.setSwitches(1+4+8);
+    pump.setMaximumTime(3600);
+    pump.setMaximumPasses(50); //100);
+    pump.setMaximumRetries(10); //(1);
+    pump.setFixOnReducedCosts(1);
+    pump.setHeuristicName("Feasibility pump 1");
+    pump.setFractionSmall(1.0);
+    pump.setWhen(13);
+        pump.setFakeCutoff(objValue+0.01*fabs(objValue));
+        pump.setReducedCostMultiplier(0.1);
+        pump.setFeasibilityPumpOptions(80);
+    d->mipmodel->addHeuristic(&pump);
+        pump.setHeuristicName("Feasibility pump 2");
+        pump.setFakeCutoff(objValue+0.05*fabs(objValue));
+        pump.setFeasibilityPumpOptions(80);
+    d->mipmodel->addHeuristic(&pump);
+        pump.setHeuristicName("Feasibility pump 3");
+        pump.setFakeCutoff(objValue+0.01*fabs(objValue));
+        pump.setReducedCostMultiplier(0.1);
+        pump.setFeasibilityPumpOptions(80);
+    d->mipmodel->addHeuristic(&pump);
+        pump.setHeuristicName("Feasibility pump 4");
+        pump.setFakeCutoff(objValue+0.05*fabs(objValue));
+        pump.setReducedCostMultiplier(1.0);
+        pump.setFeasibilityPumpOptions(80);
+        pump.setMaximumTime(200);
+    d->mipmodel->addHeuristic(&pump);
+    CbcHeuristicRINS rins(*(d->mipmodel));
+    rins.setHeuristicName("RINS");
+    rins.setFractionSmall(0.5);
+    rins.setDecayFactor(5.0);
+    d->mipmodel->addHeuristic(&rins) ;
+    CbcHeuristicLocal local(*(d->mipmodel));
+    local.setHeuristicName("LOCAL");
+    local.setFractionSmall(0.5);
+    local.setSearchType(1);
+    d->mipmodel->addHeuristic(&local) ;
+    if(longParam.count("nb_threads") ==  0 && longParam["nb_threads"] >= 1)
+    {
+        d->mipmodel->setThreadMode(7);
+        d->mipmodel->setNumberThreads(longParam["nb_threads"]);
+    }
+    
     // Could tune more
     d->mipmodel->setMinimumDrop(CoinMin(1.0, fabs(d->mipmodel->getMinimizationObjValue())*1.0e-3+1.0e-4));
     
-    d->mipmodel->setMaximumCutPassesAtRoot(50);
-    d->mipmodel->setMaximumCutPasses(100);
+    d->mipmodel->setMaximumCutPassesAtRoot(1); // (50);
+    d->mipmodel->setMaximumCutPasses(10); //(100);
     
     // Switch off strong branching if wanted
     //d->mipmodel->setNumberStrong(5);
@@ -151,6 +216,9 @@ long GenModelOsi::Solve()
         printf("Stopping after %f seconds\n", dblParam["time_limit"]);
         d->mipmodel->setDblParam(CbcModel::CbcMaximumSeconds, dblParam["time_limit"]);
     }
+#ifdef CBC_THREAD
+    printf("Using threads\n");
+#endif
     // Switch off most output
     if (d->mipmodel->getNumCols()<3000)
     {
@@ -162,7 +230,7 @@ long GenModelOsi::Solve()
         d->mipmodel->messageHandler()->setLogLevel(2);
         d->mipmodel->solver()->messageHandler()->setLogLevel(1);
     }
-    d->mipmodel->setPrintFrequency(50);
+    d->mipmodel->setPrintFrequency(1);//(50);
 
     double time1 = CoinCpuTime();
     
@@ -583,7 +651,7 @@ long GenModelOsi::Init(string name) //, int type)
     SetParam("log_output_stdout", 0, "bool", "Failure to turn on/off log output to stdout", false);
     SetParam("log_level", 0, "long", "Failure to set log level", false);
     SetParam("use_data_checking", 0, "bool", "Failure to turn on/off data checking", false);
-    SetParam("nb_threads", 0, "long", "Failure to set the number of threads", false);
+    //SetParam("nb_threads", 0, "long", "Failure to set the number of threads", false);
     SetParam("use_preprocessor", 0, "bool", "Failure to use preprocessor", false);
     
     // MIP settings
@@ -621,6 +689,9 @@ long GenModelOsi::Init(string name) //, int type)
     //}
     // OsiHintStrength { OsiHintIgnore = 0, OsiHintTry, OsiHintDo, OsiForceDo }
     
+    
+    // http://www.coin-or.org/Cbc/cbcuserguide.html
+        
     } catch (string e) {
         printf("Error : %s\n", e.c_str());
     }

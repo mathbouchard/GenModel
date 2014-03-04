@@ -5,7 +5,7 @@
 
 GenModel::GenModel()
 {
-    version = "genmodelgrb-0.0.7 build 0001";
+    version = "genmodellean-0.0.15 build 0001";
     hassolution = false;
     bcreated = false;
     binit = false;
@@ -18,7 +18,7 @@ GenModel::GenModel()
 double GenModel::FindConstraintMaxLhs(long row)
 {
     double total = 0.0;
-    for(int i = 0; i < consts[row].nz; i++)
+    for(int i = 0; i < int(consts[row].cols.size()); i++)
         total += (consts[row].coefs[i] >= 0 ? vars.ub[consts[row].cols[i]] : vars.lb[consts[row].cols[i]])*consts[row].coefs[i];
     return total;
 }
@@ -26,7 +26,7 @@ double GenModel::FindConstraintMaxLhs(long row)
 double GenModel::FindConstraintMinLhs(long row)
 {
     double total = 0.0;
-    for(int i = 0; i < consts[row].nz; i++)
+    for(int i = 0; i < int(consts[row].cols.size()); i++)
         total += (consts[row].coefs[i] >= 0 ? vars.lb[consts[row].cols[i]] : vars.ub[consts[row].cols[i]])*consts[row].coefs[i];
     return total;
 }
@@ -54,6 +54,7 @@ long GenModel::MakeConstraintFeasible(long row)
         else if(min > consts[row].urhs)
             consts[row].urhs = min;
     }
+
     return 0;
 }
 
@@ -102,6 +103,11 @@ long GenModel::PrintSol()
 		printf("%s :		%f\n", vars.name[i].c_str(), vars.sol[i]);
 	}
 	return 0;
+}
+
+long GenModel::PrintModel()
+{
+    
 }
 
 long GenModel::PrintSol(string v)

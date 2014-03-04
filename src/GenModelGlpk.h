@@ -14,6 +14,7 @@
 	#endif
 #endif
 
+#include <math.h>
 #include "GenModel.h"
 #include "glpk.h"
 
@@ -60,6 +61,8 @@ public:
 	long Solve();
 	long SetSol();
 	long Clean();
+    long WriteSolutionToFile(string filename);
+    long WriteProblemToLpFile(string filename);
 };
 
 

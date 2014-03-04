@@ -1,11 +1,16 @@
 from platform import system
 from os import listdir
-from collections import OrderedDict
+try:
+    from collections import OrderedDict
+except ImportError:
+    # python 2.6 or earlier, use backport
+    from ordereddict import OrderedDict
 from subprocess import call
 
 import os
 import copy
 
+dist_type = 2 #1: all, 2: lean, 3: grb
 is_debug = False;
 suffix = ""
 if(is_debug):
@@ -49,7 +54,10 @@ def buildoctaveargs(cpppath, libpath, libs, cxxflags, cppedefines):
 cpppath = {
     "Linux": [r"/opt/ibm/ILOG/CPLEX_Studio126/cplex/include",
               os.environ['HOME']+"/source/gurobi510/linux64/include",
-	      r"/usr/local/include/"],
+	      r"/usr/local/include/",
+	      r"/usr/include/coin/",
+	      r"/usr/local/include/ruby-1.9.1",
+	      r"/usr/local/include/ruby-1.9.1/x86_64-linux"],
     "Windows": [],
     "Darwin": [os.environ['HOME']+"/Applications/IBM/ILOG/CPLEX_Studio126/cplex/include",
               r"/Library/gurobi560/mac64/include",
@@ -63,8 +71,8 @@ cpppath = {
     }
         
 libpath = {
-    "Linux": [r"/opt/ibm/ILOG/CPLEX_Studio126/cplex/bin/x86-64_sles10_4.1/",
-              os.environ['HOME']+"/source/gurobi510/linux64/lib",
+    "Linux": [#r"/opt/ibm/ILOG/CPLEX_Studio126/cplex/bin/x86-64_sles10_4.1/",
+              #os.environ['HOME']+"/source/gurobi510/linux64/lib",
               r"/usr/local/lib/"],
     "Windows": [],
     "Darwin": [os.environ['HOME']+"/Applications/IBM/ILOG/CPLEX_Studio126/cplex/lib/x86-64_osx/static_pic",
@@ -84,13 +92,16 @@ elif (system() == "Linux"):
 elif (system() == "Darwin"):
    cppdefines.append("Darwin")
 
-libs = ["ruby","python"]
+libs = []
+
+if (system() == "Linux"):
+   libs = ["pthread", "m", "crypt", "dl"]
 
 # Validate that the libs are present
 moduleLibs = {
     "Cplex": {
-        "Linux": ["cplex126","ruby","python"],
-        "Windows": ["cplex126","ruby","python"],
+        "Linux": ["cplex126"],
+        "Windows": ["cplex126"],
         "Darwin": ["cplex"]
         },
     "Gurobi": {
@@ -114,16 +125,22 @@ moduleLibs = {
         "Darwin": ["scip", "objscip", "libsoplex.darwin.x86_64.gnu.opt.a", "z", "lpispx", "nlpi.cppad", "zimpl.darwin.x86_64.gnu.opt", "readline", "gmp"]
         },
     "Osi": {
-        "Linux": ["Clp", "Osi", "OsiClp", "CoinUtils"],
+        "Linux": ["Clp", "Cbc", "Cgl", "Osi", "OsiClp", "CoinUtils"],
         "Windows": ["Clp", "Osi", "OsiClp", "CoinUtils"],
         "Darwin": ["Clp", "Cgl", "Cbc", "Osi", "OsiClp", "CoinUtils"]
         }
     }
 ########################################################################################
 missingModules = []
-#excludedModules = ["Gurobi","HyperGraph","Glpk","Osi","Scip"]
-excludedModules = ["HyperGraph","Glpk","Osi","Scip","Cplex"]
-#excludedModules = ["Gurobi"]
+excludedModules = []
+if dist_type == 1:
+    excludedModules = ["Gurobi"]
+elif dist_type == 2:
+    excludedModules = ["Gurobi","HyperGraph","Scip","Glpk"]
+    if (system() == "Linux"):
+        excludedModules = ["Gurobi","HyperGraph","Scip","Glpk","Cplex"]
+elif dist_type == 3:
+    excludedModules = ["HyperGraph","Glpk","Osi","Scip","Cplex"]
 
 for module in moduleLibs:
     allModulePresents = True
@@ -148,19 +165,24 @@ libs = list(OrderedDict.fromkeys(libs))
 # -std=c++11 : c++ version flag
 # -pthread : changes the way some libc headers work for multithread
 cxxflags = {
-    "Linux": "-g -O2 -m64 -Wall -pthread -fmessage-length=0 -std=c++11",
+    "Linux": "-g -O2 -Wall -pthread -fmessage-length=0", # -std=c++11",
     "Windows": "/O2 /MD /EHsc",
-    "Darwin": "-g -O2 -m64 -Wall -pthread -fmessage-length=0",
+    "Darwin": "-g -O2 -m64 -Wall -pthread -fmessage-length=0, -std=c++11",
     }
     
 # Create an environmnet
+
+compiler = "g++"
+if dist_type == 3:
+    compiler = "g++-4.6"
+
 env = Environment(TARGET_ARCH = "x86_64",
     CPPPATH = cpppath[system()],
     LIBPATH = libpath[system()],
     LIBS = libs,
     CXXFLAGS = cxxflags[system()],
     CPPDEFINES = cppdefines,
-    CXX = "g++-4.6"
+    CXX = compiler
     )
 
 # Change the build folder output
@@ -184,10 +206,6 @@ if (not env.GetOption("clean")):
         for module in missingModules:
             if module in str(file):
                 filesToRemove.append(file)
-
-call(["swig","-python","-o","../src/GenModelInterface_python.cpp","-c++","../src/GenModelInterface.i"])
-call(["swig","-ruby","-o","../src/GenModelInterface_ruby.cpp","-c++","../src/GenModelInterface.i"])
-call(["mv", "../src/genmodel.py", "../lib/genmodel.py"])
 
 for file in filesToRemove:
     print(file)
@@ -218,11 +236,6 @@ env["LIBPATH"].append("../lib")
 test_libs_list = list(env["LIBS"])
 test_libs_list.append("genmodel")
 env.Program(target = "../bin/test", source = "Test.cpp", LIBS=test_libs_list)
-print("done")
-
-print("building gem file")
-call(["gem", "build", "genmodel.gemspec"])
-call(["mv", "genmodelgrb-0.0.7.gem", "../lib/genmodelgrb-0.0.7.gem"])
 print("done")
 
 if (missingModules):

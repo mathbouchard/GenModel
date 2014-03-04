@@ -102,6 +102,7 @@ public:
 	long SetNumbers();
 	long ClearStructure();
 	long PrintSol();
+    long PrintModel();
 	long PrintSol(string v);
 	long PrintSolNz();
 	long PrintSolNz(string v);

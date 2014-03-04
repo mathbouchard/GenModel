@@ -44,15 +44,6 @@
       location = "group:../../gitwork/GenModel/src/GenModelInterface.h">
    </FileRef>
    <FileRef
-      location = "group:src/GenModelInterface.i">
-   </FileRef>
-   <FileRef
-      location = "group:src/GenModelInterface_python.cpp">
-   </FileRef>
-   <FileRef
-      location = "group:src/GenModelInterface_ruby.cpp">
-   </FileRef>
-   <FileRef
       location = "group:src/Test.cpp">
    </FileRef>
    <FileRef

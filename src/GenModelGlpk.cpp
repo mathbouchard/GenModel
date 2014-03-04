@@ -4,6 +4,34 @@
 #endif
 #include <limits>
 
+
+
+long GenModelGlpk::WriteProblemToLpFile(string filename)
+{
+    //if(!bcreated)
+    //    throw string("WriteProblemToLpFile() not available : Problem not created yet;");
+    
+    GlpkData* d = static_cast<GlpkData*>(solverdata);
+    glp_write_prob(d->model, 0, filename.c_str());
+    return 0;
+}
+
+long GenModelGlpk::WriteSolutionToFile(string filename)
+{
+    //if(!bcreated)
+    //    throw string("WriteSolutionToFile() not available : Problem not created yet;");
+    
+    FILE* f = fopen(filename.c_str(), "w");
+    for(long i = 0; i < long(vars.n); i++)
+	{
+		if(fabs(vars.sol[i]) > 0.000001)
+			fprintf(f, "%s :		%f\n", vars.name[i].c_str(), vars.sol[i]);
+	}
+    
+    fclose(f);
+    return 0;
+}
+
 long GenModelGlpk::Solve()
 {
 	if(boolParam.count("qp") > 0 && boolParam["qp"])

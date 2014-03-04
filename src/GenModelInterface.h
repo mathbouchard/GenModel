@@ -65,6 +65,8 @@
     #define OSI_EXIST false
 #endif
 
+GENMODEL_EXTERN_C_BEGIN
+
 double FindConstraintMaxLhs(long row, long token);
 double FindConstraintMinLhs(long row, long token);
 long MakeConstraintFeasible(long row, long token);
@@ -110,6 +112,8 @@ long ChangeBulkBounds(int count, int* indices, char* types, double* values, long
 long ChangeBulkObjectives(int count, int* indices, double* values, long token);
 long DeleteMipStarts(long token);
 double GetMIPRelativeGap(long token);
+
+GENMODEL_EXTERN_C_END
 
 template<class T> class InterfaceVector {
 public:
