@@ -55,19 +55,14 @@ cpppath = {
     "Linux": [r"/opt/ibm/ILOG/CPLEX_Studio126/cplex/include",
               os.environ['HOME']+"/source/gurobi510/linux64/include",
 	      r"/usr/local/include/",
-	      r"/usr/include/coin/",
-	      r"/usr/local/include/ruby-1.9.1",
-	      r"/usr/local/include/ruby-1.9.1/x86_64-linux"],
+	      r"/usr/include/coin/"],
     "Windows": [],
     "Darwin": [os.environ['HOME']+"/Applications/IBM/ILOG/CPLEX_Studio126/cplex/include",
               r"/Library/gurobi560/mac64/include",
               r"/usr/local/Cellar/octave/3.8.0/include/octave-3.8.0",
-              r"/Users/mbouchard/.rvm/rubies/ruby-1.9.3-p392/include/ruby-1.9.1",
-              r"/Users/mbouchard/.rvm/rubies/ruby-1.9.3-p392/include/ruby-1.9.1/x86_64-darwin13.0.2",
-              r"/System/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7",
-	      r"/Users/mbouchard/source/scipoptsuite-3.0.2/scip-3.0.2/src/",
-          r"/usr/local/Cellar/cbc/2.8.6/include/coin/",
-          r"/usr/local/Cellar/cgl/0.58.3/include/coin/"]
+              r"/Users/mbouchard/source/scipoptsuite-3.0.2/scip-3.0.2/src/",
+              r"/usr/local/Cellar/cbc/2.8.6/include/coin/",
+              r"/usr/local/Cellar/cgl/0.58.3/include/coin/"]
     }
         
 libpath = {
@@ -77,11 +72,7 @@ libpath = {
     "Windows": [],
     "Darwin": [os.environ['HOME']+"/Applications/IBM/ILOG/CPLEX_Studio126/cplex/lib/x86-64_osx/static_pic",
               r"/Library/gurobi560/mac64/lib",
-              os.environ['HOME']+"/.rvm/rubies/ruby-1.9.3-p392/lib",
-              r"/System/Library/Frameworks/Python.framework/Versions/2.7/lib/",
-	      r"/Users/mbouchard/source/scipoptsuite-3.0.2/scip-3.0.2/lib/"]#,
-          #r"/usr/local/Cellar/cbc/2.8.6/lib/",
-          #r"/usr/local/Cellar/cgl/0.58.3/lib/"]
+	          r"/Users/mbouchard/source/scipoptsuite-3.0.2/scip-3.0.2/lib/"]
     }
 
 cppdefines = []
@@ -167,7 +158,7 @@ libs = list(OrderedDict.fromkeys(libs))
 cxxflags = {
     "Linux": "-g -O2 -Wall -pthread -fmessage-length=0", # -std=c++11",
     "Windows": "/O2 /MD /EHsc",
-    "Darwin": "-g -O2 -m64 -Wall -pthread -fmessage-length=0, -std=c++11",
+    "Darwin": "-g -O2 -m64 -Wall -pthread -fmessage-length=0 -std=c++11",
     }
     
 # Create an environmnet
