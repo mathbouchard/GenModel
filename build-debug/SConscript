@@ -62,9 +62,9 @@ elif (system() == "Linux"):
 elif (system() == "Darwin"):
    cppdefines.append("Darwin")
 
-libs = ["c"]
+libs = []
 if (system() == "Linux"):
-   libs = ["pthread", "m", "crypt", "dl", "c"]
+   libs = ["pthread", "dl"] #["pthread", "m", "crypt", "dl", "c"]
 
 # Validate that the libs are present
 moduleLibs = {
@@ -197,7 +197,7 @@ env.SharedLibrary(target = "../lib/" + target, source = files)
 print("done")
 
 print("building test program")
-env["LIBPATH"].append("../lib")
+#env["LIBPATH"].append("../lib")
 test_libs_list = list(env["LIBS"])
 test_libs_list.append("genmodeld")
 env.Program(target = "../bin/testd", source = "Test.cpp", LIBS=test_libs_list)
