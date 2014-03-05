@@ -216,9 +216,7 @@ long GenModelOsi::Solve()
         printf("Stopping after %f seconds\n", dblParam["time_limit"]);
         d->mipmodel->setDblParam(CbcModel::CbcMaximumSeconds, dblParam["time_limit"]);
     }
-#ifdef CBC_THREAD
-    printf("Using threads\n");
-#endif
+
     // Switch off most output
     if (d->mipmodel->getNumCols()<3000)
     {

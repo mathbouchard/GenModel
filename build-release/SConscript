@@ -18,12 +18,10 @@ if(is_debug):
     print("DEBUG")
 else:
     print("RELEASE")
-print("System is "+ system());
 
 def validateLibrary(libraryName, exclude):
     """ Search in the libpath of the current platform if the library is present """
     if module in exclude:
-        print(module+"-"+mod+" excluded")
         return False;
     for folder in libpath[system()]:
         for file in listdir(folder):
@@ -31,24 +29,16 @@ def validateLibrary(libraryName, exclude):
                 return True
     return True #False
     
-def buildoctaveargs(cpppath, libpath, libs, cxxflags, cppedefines):
-    arglist = ["mkoctfile"]
+def buildoctavecmd(cpppath, libpath, libs, cxxflags, cppedefines):
+    octavecmd = "mkoctfile "
     for val in cpppath[system()]:
-        #str += "-I"+val+" "
-        arglist.append("-I"+val)
+        octavecmd += "-I"+val+" "
     for val in libpath[system()]:
-        #str += "-L"+val+" "
-        arglist.append("-L"+val)
-    arglist.append("-L../lib")
+        octavecmd += "-L"+val+" "
     for val in libs:
-        #str += "-l"+val+" "
-        arglist.append("-l"+val)
-    arglist.append("-lgenmodel")
-    arglist.append("../src/GenModelOctave.cpp")
-    arglist.append("-o")
-    arglist.append("../lib/gensolve.oct")
-
-    return arglist
+        octavecmd += "-l"+val+" "
+    octavecmd += " -lgenmodel src/GenModelOctave.cpp -o lib/gensolve.oct"
+    return octavecmd
 
 
 cpppath = {
@@ -132,6 +122,21 @@ elif dist_type == 2:
         excludedModules = ["Gurobi","HyperGraph","Scip","Glpk","Cplex"]
 elif dist_type == 3:
     excludedModules = ["HyperGraph","Glpk","Osi","Scip","Cplex"]
+    
+if(GetOption('cplex') or GetOption('osi') or GetOption('glpk') or GetOption('grb') or GetOption('scip') or GetOption('hg')):
+    excludedModules = [];
+    if not GetOption('cplex'):
+        excludedModules.append("Cplex")
+    if not GetOption('osi'):
+        excludedModules.append("Osi")
+    if not GetOption('glpk'):
+        excludedModules.append("Glpk")
+    if not GetOption('grb'):
+        excludedModules.append("Gurobi")
+    if not GetOption('scip'):
+        excludedModules.append("Scip")
+    if not GetOption('hg'):
+        excludedModules.append("HyperGraph")
 
 for module in moduleLibs:
     allModulePresents = True
@@ -199,35 +204,31 @@ if (not env.GetOption("clean")):
                 filesToRemove.append(file)
 
 for file in filesToRemove:
-    print(file)
     files.remove(file)
 
 matches = [file for file in files if "GenModelOctave.cpp" in str(file)]
 for file in matches:
-    print("Removing "+str(file))
     files.remove(file)
     
 matches = [file for file in files if "Test.cpp" in str(file)]
 for file in matches:
-    print("Removing "+str(file))
     files.remove(file)
     
 # Build the library
 
-print("building library...")
-env.SharedLibrary(target = "../lib/" + target, source = files)
-print("done")
-#print("building octave interface")
-#octargs = buildoctaveargs(cpppath, libpath, libs, cxxflags, cppdefines)
-#call(octargs)
-#print("done")
+genmodellib = env.SharedLibrary(target = "../lib/" + target, source = files)
 
-print("building test program")
-#env["LIBPATH"].append("../lib")
+octavecmd = buildoctavecmd(cpppath, libpath, libs, cxxflags, cppdefines)
+octave = env.Command(target = "../lib/gensolve.oct", source = None, action = octavecmd)
+
 test_libs_list = list(env["LIBS"])
 test_libs_list.append("genmodel")
-env.Program(target = "../bin/test", source = "Test.cpp", LIBS=test_libs_list, CPPDEFINES = cppdefines)
-print("done")
+genmodeltest = env.Program(target = "../bin/test", source = "Test.cpp", LIBS=test_libs_list, CPPDEFINES = cppdefines)
+
+clean = env.Command(target = "../clean", source = None, action = "rm -f lib/"+target+" build-release/*.os lib/gensolve.oct bin/test")
+
+Depends(genmodeltest, genmodellib)
+Default(genmodeltest)
 
 if (missingModules):
     print("***************************************************************************")
