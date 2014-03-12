@@ -8,10 +8,6 @@
 #ifndef GENMODELOSI_H_
 #define GENMODELOSI_H_
 
-#ifndef CBC_THREAD
-    #define CBC_THREAD
-#endif
-
 #if defined WIN64 || defined WIN32
 	#ifndef snprintf
 		#define snprintf sprintf_s
