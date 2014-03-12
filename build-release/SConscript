@@ -44,8 +44,9 @@ def buildoctavecmd(cpppath, libpath, libs, cxxflags, cppedefines):
 cpppath = {
     "Linux": [r"/opt/ibm/ILOG/CPLEX_Studio126/cplex/include",
               os.environ['HOME']+"/source/gurobi510/linux64/include",
-	      r"/usr/local/include/",
-	      r"/usr/include/coin/"],
+              os.environ['HOME']+"/gitwork/cpxinc/",
+              r"/usr/local/include/",
+              r"/usr/include/coin/"],
     "Windows": [],
     "Darwin": [os.environ['HOME']+"/Applications/IBM/ILOG/CPLEX_Studio126/cplex/include",
               r"/Library/gurobi560/mac64/include",
