@@ -22,29 +22,6 @@ int main(int argc, char** argv)
     bool quadratic = false;
     bool mip = true;
     
-    printf("*********** Testing if the library is present ***********\n");
-    void* genmodel_lib = NULL;
-    bool (*_IsSolverAvailable)(char type) = NULL;
-    char* error = NULL;
-#ifdef Darwin
-    string suffix = string(".dylib");
-#else
-    string suffix = string(".so");
-#endif
-    genmodel_lib = dlopen((string("libgenmodel")+suffix).c_str(), RTLD_LAZY);
-    if(genmodel_lib == NULL)
-    {
-        printf("Falling back to default installation directory : %s\n", (string("/usr/local/lib/libgenmodel")+suffix).c_str());
-        //genmodel_lib = dlopen((string("/Users/mbouchard/gitwork/GenModel/lib/libgenmodel")+suffix).c_str(), RTLD_LAZY);
-        genmodel_lib = dlopen((string("/usr/local/lib/libgenmodel")+suffix).c_str(), RTLD_LAZY);
-    }
-    if(genmodel_lib == NULL)
-        throw string("Genmodel C++ library is missing or is not in the library path\n");
-    *(void **)(&_IsSolverAvailable) = dlsym(genmodel_lib, "IsSolverAvailable");
-    if ((error = dlerror()) != NULL) {throw string("Cannot link to IsSolverAvailable");}
-    printf("IsSolverAvailable loaded, ptr = %p\n",  (void *)_IsSolverAvailable);
-    dlclose(genmodel_lib);
-    genmodel_lib = NULL;
     printf("*********** Testing done ***********\n");
     
     printf("Solving problem from Integer Programming book p.130\n\n");

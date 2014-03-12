@@ -38,7 +38,7 @@ GENMODEL_EXTERN_C_BEGIN
 
 bool VerifyId(long token)
 {
-    if(token <0 || token >= gmmap.size())
+    if(token <0 || token >= long(gmmap.size()))
     {
         throw string("Model id out of bound");
         return false;
@@ -219,7 +219,7 @@ long CreateNewModel(char type, char* name = NULL)
             throw string("Unknown solver");
             return 1;
     }
-	if(gmmap.size() == ret)
+	if(long(gmmap.size()) == ret)
         return 1;
 	gmmap[ret]->name = "DefaultGenModel";
     if(name != NULL)
@@ -304,10 +304,10 @@ bool HasSolution(long token)
 bool GetSolVars(double* values, long length, long token)
 {
     VerifyId(token);
-	if (length != gmmap[token]->nc)
+	if (length != long(gmmap[token]->nc))
 		throw string("Wrong length : GetSolVars()");
     
-	for(int i = 0; i < gmmap[token]->nc; i++)
+	for(int i = 0; i < long(gmmap[token]->nc); i++)
 		values[i] = gmmap[token]->vars.sol[i];
     
 	return true;
@@ -316,10 +316,10 @@ bool GetSolVars(double* values, long length, long token)
 bool GetDualPrices(double* values, long length, long token)
 {
     VerifyId(token);
-	if (length != gmmap[token]->nr)
+	if (length != long(gmmap[token]->nr))
 		throw string("Wrong length : GetDualPrices()");
     
-	for(int i = 0; i < gmmap[token]->nr; i++)
+	for(int i = 0; i < long(gmmap[token]->nr); i++)
 		values[i] = gmmap[token]->consts[i].dual;
     
 	return true;
@@ -328,10 +328,10 @@ bool GetDualPrices(double* values, long length, long token)
 bool GetSlacks(double* values, long length, long token)
 {
     VerifyId(token);
-	if (length != gmmap[token]->nr)
+	if (length != long(gmmap[token]->nr))
 		throw string("Wrong length : GetSlacks()");
     
-	for(int i = 0; i < gmmap[token]->nr; i++)
+	for(int i = 0; i < long(gmmap[token]->nr); i++)
 		values[i] = gmmap[token]->consts[i].slack;
     
     return true;
@@ -340,10 +340,10 @@ bool GetSlacks(double* values, long length, long token)
 bool GetReducedCosts(double* values, long length, long token)
 {
     VerifyId(token);
-	if (length != gmmap[token]->nc)
+	if (length != long(gmmap[token]->nc))
 		throw string("Wrong length : GetReducedCosts()");
     
-	for(int i = 0; i < gmmap[token]->nc; i++)
+	for(int i = 0; i < long(gmmap[token]->nc); i++)
 		values[i] = gmmap[token]->vars.rc[i];
     
 	return true;
@@ -352,7 +352,7 @@ bool GetReducedCosts(double* values, long length, long token)
 bool GetRowValues(double* values, long length, long rowIndex, long token)
 {
     VerifyId(token);
-	if (length != gmmap[token]->nc || rowIndex >= gmmap[token]->nr)
+	if (length != long(gmmap[token]->nc) || rowIndex >= long(gmmap[token]->nr))
 	{
 		return false;
 	}
@@ -367,12 +367,12 @@ bool GetRowValues(double* values, long length, long rowIndex, long token)
 bool GetObjCoef(double* values, long length, long token)
 {
     VerifyId(token);
-	if (length != gmmap[token]->nc)
+	if (length != long(gmmap[token]->nc))
 	{
 		return false;
 	}
     
-	for(int i = 0; i < gmmap[token]->nc; i++)
+	for(int i = 0; i < long(gmmap[token]->nc); i++)
 	{
 		values[i] = gmmap[token]->vars.obj[i];
 	}
@@ -383,12 +383,12 @@ bool GetObjCoef(double* values, long length, long token)
 bool GetBounds(double* lb, double* ub, long length, long token)
 {
     VerifyId(token);
-	if (length != gmmap[token]->nc)
+	if (length != long(gmmap[token]->nc))
 	{
 		return false;
 	}
     
-	for(int i = 0; i < gmmap[token]->nc; i++)
+	for(int i = 0; i < long(gmmap[token]->nc); i++)
 	{
 		lb[i] = gmmap[token]->vars.lb[i];
 		ub[i] = gmmap[token]->vars.ub[i];
@@ -400,7 +400,7 @@ bool GetBounds(double* lb, double* ub, long length, long token)
 double GetLowerBound(long col, long token)
 {
     VerifyId(token);
-	if (col != gmmap[token]->nc || col < 0)
+	if (col != long(gmmap[token]->nc) || col < 0)
         return (numeric_limits<double>::has_signaling_NaN ? numeric_limits<double>::signaling_NaN() : numeric_limits<double>::quiet_NaN());
     
 	return gmmap[token]->vars.lb[col];
@@ -409,7 +409,7 @@ double GetLowerBound(long col, long token)
 double GetUpperBound(long col, long token)
 {
     VerifyId(token);
-	if (col != gmmap[token]->nc || col < 0)
+	if (col != long(gmmap[token]->nc) || col < 0)
         return (numeric_limits<double>::has_signaling_NaN ? numeric_limits<double>::signaling_NaN() : numeric_limits<double>::quiet_NaN());
     
 	return gmmap[token]->vars.ub[col];
@@ -418,7 +418,7 @@ double GetUpperBound(long col, long token)
 bool SetLowerBound(long col, double val, long token)
 {
     VerifyId(token);
-	if (col != gmmap[token]->nc || col < 0)
+	if (col != long(gmmap[token]->nc) || col < 0)
         return false;
     gmmap[token]->vars.lb[col] = val;
 	return true;
@@ -427,7 +427,7 @@ bool SetLowerBound(long col, double val, long token)
 bool SetUpperBound(long col, double val, long token)
 {
     VerifyId(token);
-	if (col != gmmap[token]->nc || col < 0)
+	if (col != long(gmmap[token]->nc) || col < 0)
         return false;
     gmmap[token]->vars.ub[col] = val;
 	return true;

@@ -163,7 +163,7 @@ libs = list(OrderedDict.fromkeys(libs))
 # -std=c++11 : c++ version flag
 # -pthread : changes the way some libc headers work for multithread
 cxxflags = {
-    "Linux": "-O2 -m64 -Wall -pthread -fmessage-length=0 -fPIC -std=c++0x",
+    "Linux": "-O2 -Wall -pthread -fmessage-length=0 -fPIC -std=c++0x",
     "Windows": "/O2 /MD /EHsc",
     "Darwin": "-O2 -m64 -Wall -pthread -fmessage-length=0 -fPIC -std=c++11",
     }

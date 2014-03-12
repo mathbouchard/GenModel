@@ -107,7 +107,7 @@ long GenModel::PrintSol()
 
 long GenModel::PrintModel()
 {
-    
+    return 0;
 }
 
 long GenModel::PrintSol(string v)
